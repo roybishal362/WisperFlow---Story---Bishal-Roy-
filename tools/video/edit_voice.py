@@ -38,6 +38,13 @@ def snap(t, side, win=0.3):
 # ---------- transcript words ----------
 segs = json.load(open(TR, encoding="utf-8"))
 WORDS = [w for s in segs for w in s["words"]]
+# the recogniser sometimes stretches a word across a long pause; pull a long word in to where its sound really is
+db = 20 * np.log10(env + 1e-6)
+for w in WORDS:
+    if w["e"] - w["s"] > 0.6:
+        a, b = int(w["s"] * 100), min(len(db) - 1, int(w["e"] * 100))
+        loud = np.nonzero(db[a:b + 1] > -45)[0]
+        if len(loud): w["s"], w["e"] = round((a + loud[0]) / 100, 2), round(max((a + loud[-1]) / 100 + 0.05, (a + loud[0]) / 100 + 0.1), 2)
 md = open(os.path.join(VID, "VIDEO-SCRIPT.md"), encoding="utf-8").read()
 SCRIPT = [re.sub(r"[*]", "", t) for t in re.findall(r"^> (.+)$", md, flags=re.M)][:10]
 FIX = [(r"\bwhisper\b", "Wispr"), (r"\bwisper\b", "Wispr"), (r"\bvistorflow\b", "Wispr Flow"), (r"\bvishal\b", "Bishal"), (r"\bbishel\b", "Bishal"),
@@ -92,11 +99,55 @@ def caption_words(n, heard):
         elif op in ("replace", "insert"):                                           # he said something new: keep his words
             out += [{"w": fix(h["w"]), "s": h["s"], "e": h["e"]} for h in hs]
         # "delete": a script word he didn't say -> not captioned
+    return capfix(n, out)
+
+# lines he improvised or re-phrased, cleaned up after listening to every take (old words -> new words)
+CAPFIX = {3: [("setbacks. and grew.", "setbacks and grew.")],
+          4: [("That's the golden line shows in the towers to fill in the gaps.", "That's why the golden lines show in the towers: to fill in the gaps.")],
+          5: [("classes, and every project has its card shows", "classes. And every project has its card that shows")],
+          6: [("makers: Just for example, dwarves", "makers. Just for example: dwarves")],
+          8: [("question why voice?", "question: why voice?")],
+          9: [("plans. a Ghar ka", "plans. Ghar ka"), ("festival kit", "festive kit")],
+          10: [("too and who", "too, and who")]}
+def capfix(n, ws):
+    for old, new in CAPFIX.get(n, []):
+        o, nw = old.split(), new.split(); txt = [fix(w["w"]) for w in ws]
+        for i in range(len(ws) - len(o) + 1):
+            if txt[i:i + len(o)] == o:
+                seg = ws[i:i + len(o)]; s0, e0 = seg[0]["s"], seg[-1]["e"]
+                if len(nw) == len(o): rep = [{"w": nw[k], "s": seg[k]["s"], "e": seg[k]["e"]} for k in range(len(o))]
+                else: st = (e0 - s0) / len(nw); rep = [{"w": nw[k], "s": s0 + k * st, "e": s0 + (k + 1) * st} for k in range(len(nw))]
+                ws = ws[:i] + rep + ws[i + len(o):]; break
+        else: print(f"  !! caption fix not applied in part {n}: {old!r}")
+    return ws
+
+WEAK = set("a an the of to my and with from is in into for at on by that his its who when what i im you as or so but every each one".split())
+def split_sentence(s):
+    """Halve a long sentence until each piece fits on one line: cut at a comma near the middle,
+    otherwise at the middle, but never right after a small word like "a" or "the"."""
+    if len(s) <= 2 or (len(" ".join(w["w"] for w in s)) <= 64 and len(s) <= 11): return [s]
+    n = len(s); mid = round(n / 2); cut = None
+    for d in (0, 1, -1, 2, -2, 3, -3):
+        i = mid + d
+        if 2 <= i <= n - 2 and s[i - 1]["w"].endswith((",", ":", ";")): cut = i; break
+    joined = lambda i: s[i]["w"][:1].isdigit() or (s[i - 1]["w"][:1].isupper() and s[i]["w"][:1].isupper())   # "Class 10", "Echo Caves"
+    for d in (0, -1, 1, -2, 2):
+        if cut is not None: break
+        i = mid + d
+        if 2 <= i <= n - 2 and norm(s[i - 1]["w"]) not in WEAK and not joined(i): cut = i
+    cut = cut or mid
+    return split_sentence(s[:cut]) + split_sentence(s[cut:])
+def cap_chunks(ws):
+    """One caption per sentence, long sentences split into one-line pieces."""
+    out, sent = [], []
+    for j, w in enumerate(ws):
+        sent.append(w)
+        if w["w"].endswith((".", "?", "!")) or j == len(ws) - 1: out += split_sentence(sent); sent = []
     return out
 
 # ---------- cue times from his actual words ----------
 CUES = {1: {"enter": [("so", 1)]}, 2: {"turn1": [("journey", 1)], "turn2": [("island", 1)], "travel": [("balloons", 1), ("balloon", 1)]},
-        3: {"depot": [("depot", 1)], "sky": [("until", 1)]},
+        3: {"depot": [("depot", 1), ("depart", 1)], "sky": [("until", 1)]},
         4: {"tower": [("fly", 1)], "mirror": [("turn", 1)], "lakeflip": [("neither", 1)], "golden": [("golden", 1)]},
         5: {"turn": [("spins", 1)], "enter": [("oracle", 1), ("oracles", 1)], "bag": [("achieved", 1)], "next": [("public", 1)], "plaza": [("11", 1), ("eleven", 1)]},
         6: {"w1": [("dwarves", 1)], "w2": [("alchemists", 1)], "w3": [("witches", 1)], "w4": [("elves", 1)], "w5": [("bards", 1)],
@@ -136,7 +187,7 @@ print("cues not found:", {k: v for k, v in missing.items() if v})
 if "--plan" in sys.argv:
     for S in sections:
         print(f"\n[{S['n']} {S['title']}] dur {S['dur']}s  cues {timing[str(S['n'])]['cues']}")
-        print("   CAPTION: " + fix(" ".join(w["w"] for w in caption_words(S["n"], S["words"]))))
+        print("   CAPTIONS: " + "  |  ".join(fix(" ".join(x["w"] for x in c)) for c in cap_chunks(caption_words(S["n"], S["words"]))))
     sys.exit(0)
 
 # ---------- record ----------
@@ -189,13 +240,9 @@ review = []
 for k, S in enumerate(sections):
     ws = caption_words(S["n"], S["words"]); shift = offs[k] + LEAD; chunk = []
     review.append(f"\n[{S['title']}] " + " ".join(w["w"] for w in ws))
-    for j, w in enumerate(ws):
-        chunk.append(w)
-        brk = w["w"].endswith((".", "?", "!", ",", ":")) and len(chunk) >= 3
-        if len(chunk) >= 7 or brk or j == len(ws) - 1:
-            text = fix(" ".join(x["w"] for x in chunk))
-            ass.append(f"Dialogue: 0,{ts(chunk[0]['s'] + shift)},{ts(chunk[-1]['e'] + shift + 0.15)},Cap,,0,0,0,,{text}")
-            chunk = []
+    for chunk in cap_chunks(ws):
+        text = fix(" ".join(x["w"] for x in chunk))
+        ass.append(f"Dialogue: 0,{ts(chunk[0]['s'] + shift)},{ts(chunk[-1]['e'] + shift + 0.15)},Cap,,0,0,0,,{text}")
 ass_path = os.path.join(WORK, "captions.ass"); open(ass_path, "w", encoding="utf-8").write("\n".join(ass))
 open(os.path.join(OUT, NAME + "-captions-review.txt"), "w", encoding="utf-8").write("".join(review))
 sub = ass_path.replace("\\", "/").replace(":", "\\:")

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Stage from "./components/Stage";
+import Stage, { useStage } from "./components/Stage";
 import { Btn } from "./components/Ui";
 import { useRoute, go, preload, art, store, useStore, wait, motion as motionSwitch, useMotion } from "./lib/core";
 import { REALMS, SIXTY, PERSON, INTRO } from "./content";
@@ -25,10 +25,12 @@ function realmTitle(id) {
 }
 
 function CloudWipe({ wipe }) {
+  // the stage is scaled, so "fixed" would only cover the stage: size the clouds to the whole window instead
+  const { bg } = useStage();
   return (
     <AnimatePresence>
       {wipe && (
-        <motion.div key="wipe" className="wipe" initial={{ opacity: 0 }} animate={{ opacity: wipe.phase === "open" ? 0 : 1 }} exit={{ opacity: 0 }}
+        <motion.div key="wipe" className="wipe" style={{ position: "absolute", left: bg.left, top: bg.top, width: bg.width, height: bg.height }} initial={{ opacity: 0 }} animate={{ opacity: wipe.phase === "open" ? 0 : 1 }} exit={{ opacity: 0 }}
           transition={{ duration: wipe.phase === "open" ? 0.7 : 0.55, ease: "easeInOut" }}>
           <motion.img src={art("01-world/bg-clouds-wipe")} alt="" initial={{ scale: 1.35 }} animate={{ scale: wipe.phase === "open" ? 1.5 : 1.05 }}
             transition={{ duration: wipe.phase === "open" ? 0.8 : 0.7, ease: "easeOut" }} />
