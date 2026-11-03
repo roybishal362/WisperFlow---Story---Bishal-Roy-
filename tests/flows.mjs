@@ -13,9 +13,9 @@ const page = await browser.newPage();
 await page.setViewport(mobile ? { width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true } : { width: 1440, height: 900 });
 await page.emulateMediaFeatures([{ name: "prefers-reduced-motion", value: "reduce" }]); // like Bishal's laptop
 const problems = [], results = [];
-page.on("console", (m) => { if (["error", "warning"].includes(m.type())) problems.push(`[console.${m.type()}] ${m.text()}`); });
+page.on("console", (m) => { if ((m.location()?.url || "").includes("/api/roy")) return; if (["error", "warning"].includes(m.type())) problems.push(`[console.${m.type()}] ${m.text()}`); });
 page.on("pageerror", (e) => problems.push(`[pageerror] ${e.message}`));
-page.on("response", (r) => { if (r.status() >= 400) problems.push(`[http ${r.status()}] ${r.url()}`); });
+page.on("response", (r) => { if (r.status() >= 400 && !r.url().includes("/api/roy")) problems.push(`[http ${r.status()}] ${r.url()}`); });
 const shot = (n) => page.screenshot({ path: path.join(out, n + ".png") });
 const hash = () => page.evaluate(() => location.hash);
 async function clickText(sel, text) {

@@ -281,3 +281,13 @@ export const MUSIC = {
     { title: "Lord of the Land", file: "lord-of-the-land.mp3" },
   ],
 };
+
+// Talk to Roy (the chat in the top bar; answers come from api/roy.js, which only uses the facts in this file)
+export const ROYCHAT = {
+  sub: "a tiny me · ask about my story",
+  hello: "Hi, I'm Roy: a tiny version of Bishal. Ask me anything about my journey, my builds, my skills, or my plan for Wispr Flow India.",
+  chips: ["What did you build at Interview Kickstart?", "What was your hardest setback?", "Why is your portfolio a world?", "What would you do at Wispr Flow?", "What are your best hackathon results?"],
+  note: "Roy answers only from the facts in this world, using AI. It can still slip, so for anything important, email me.",
+  down: "My lantern flickered and I couldn't answer just now. Try again in a moment, or email me at roybishal9989@gmail.com.",
+};
+

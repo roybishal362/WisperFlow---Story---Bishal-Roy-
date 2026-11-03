@@ -185,6 +185,7 @@ Three flight plans for Wispr Flow India (**Ghar ka Flow**, **Campus Flow**, **Bo
 - **A hand-rolled 360° ring** drives both the world map and the shop plaza: drag with momentum, snap to the nearest slot, depth sorting, and bridges that follow each island as it turns.
 - **Living paintings.** The backgrounds drift slowly, lean with the pointer, and carry particles (embers, petals, fireflies, lanterns, crystal sparks).
 - **Transitions:** cloud wipes that preload the next realm while they cover the screen, the balloon flight, the depot engine change, the lake fly-in, a light bloom when you enter a shop, and a forge flash with a logo burst.
+- **Talk to Roy.** A chat in the top bar: visitors type, or hold the mic and speak, and Roy answers as a tiny me, using only the facts on this site. A small server function ([`api/roy.js`](api/roy.js)) asks Gemini first and falls back to Groq. The keys never reach the browser, every message is capped and rate-limited, and the button stays hidden until a key is configured.
 - **A game soundtrack.** Six fantasy tracks play in order and loop, starting softly with your first click into the world (browsers block sound before that). The ♪ button in the top bar pauses, skips or picks a track; the choice is remembered, and the music dips while the Echo Caves listen to your voice.
 - **Content as data.** Every word on the site lives in one file, [`src/content.js`](src/content.js).
 - **Progress is remembered** (`localStorage`): realms visited, your bag of item cards, the stage of every workshop.

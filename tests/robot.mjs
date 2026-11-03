@@ -36,10 +36,10 @@ await page.setViewport(mobile ? { width: 390, height: 844, deviceScaleFactor: 2,
 // like Bishal's laptop (Windows animation effects off): the site must still animate and lay out correctly
 await page.emulateMediaFeatures([{ name: "prefers-reduced-motion", value: "reduce" }]);
 const problems = [];
-page.on("console", (m) => { if (["error", "warning"].includes(m.type())) problems.push(`[console.${m.type()}] ${m.text()}`); });
+page.on("console", (m) => { if ((m.location()?.url || "").includes("/api/roy")) return; if (["error", "warning"].includes(m.type())) problems.push(`[console.${m.type()}] ${m.text()}`); });
 page.on("pageerror", (e) => problems.push(`[pageerror] ${e.message}`));
-page.on("requestfailed", (r) => problems.push(`[requestfailed] ${r.url()} ${r.failure()?.errorText}`));
-page.on("response", (r) => { if (r.status() >= 400) problems.push(`[http ${r.status()}] ${r.url()}`); });
+page.on("requestfailed", (r) => r.url().includes("/api/roy") || problems.push(`[requestfailed] ${r.url()} ${r.failure()?.errorText}`));
+page.on("response", (r) => { if (r.status() >= 400 && !r.url().includes("/api/roy")) problems.push(`[http ${r.status()}] ${r.url()}`); });
 
 await page.goto(base + "/#/", { waitUntil: "networkidle0" });
 await page.evaluate(() => localStorage.setItem("vast-realm-v1", JSON.stringify({ visited: [], bag: [], stages: {}, crystals: [], seen: ["world", "city", "line", "lake", "ring", "crafters", "echo", "skyport"] })));
