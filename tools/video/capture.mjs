@@ -52,7 +52,7 @@ const ACTIONS = {
   2: { turn1: () => page.keyboard.press("ArrowRight"), turn2: () => page.keyboard.press("ArrowRight"),
        travel: () => page.evaluate(() => [...document.querySelectorAll(".w-hit")].find((b) => b.getAttribute("aria-label").includes("Long Line"))?.click()) },
   3: { depot: () => hash("/line/depot2"), rollout: () => click("ROLL OUT"), sky: () => hash("/line/leg5") },
-  4: { tower: () => clickSel(".lk-tw", 2), mirror: () => click("TURN THE MIRROR"), lakeflip: () => hash("/lake/mirror") },
+  4: { tower: () => clickSel(".lk-tw", 2), mirror: () => click("TURN THE MIRROR"), lakeflip: () => hash("/lake/mirror"), golden: () => hash("/lake") },
   5: { turn: () => page.evaluate(() => [...document.querySelectorAll(".lr-shop button")].find((b) => b.getAttribute("aria-label").includes("Oracle"))?.click()),
        enter: () => click("ENTER THE ORACLE"), bag: () => click("ADD TO BAG"), next: () => click("NEXT SHOP"),
        plaza: () => hash("/ring"), spin1: () => page.keyboard.press("ArrowRight"), spin2: () => page.keyboard.press("ArrowRight"), spin3: () => page.keyboard.press("ArrowRight") },
