@@ -23,7 +23,7 @@ const PARTS = {
   5: { dur: 21, start: "/ring", cues: { turn: 1.5, enter: 4.5, bag: 9, next: 15 } },
   6: { dur: 13, start: "/crafters", cues: { forge: 3, strike: 8, strike2: 11 } },
   7: { dur: 26, start: "/echo", cues: { crystal1: 9, crystal2: 15, speak: 21 } },
-  8: { dur: 19, start: "/skyport", cues: { plan1: 9, plan2: 13, plan3: 16 } },
+  8: { dur: 19, start: "/skyport", cues: { plan1: 9, plan2: 14 } },
   9: { dur: 13, start: "/skyport/council", cues: { depart: 6 } },
 };
 
@@ -57,7 +57,7 @@ const ACTIONS = {
   6: { forge: () => page.evaluate(() => [...document.querySelectorAll(".cr-door")].find((b) => b.textContent.includes("Forge"))?.click()),
        strike: () => click("STRIKE THE ANVIL"), strike2: () => click("STRIKE THE ANVIL") },
   7: { crystal1: () => clickSel(".ec-list button", 0), crystal2: () => clickSel(".ec-list button", 1), speak: () => click("the skyport") },
-  8: { plan1: () => clickSel(".sp-route", 0), plan2: () => hash("/skyport/plan/2"), plan3: () => hash("/skyport/plan/3") },
+  8: { plan1: () => clickSel(".sp-route", 0), plan2: () => hash("/skyport/plan/3") },
   9: { depart: () => hash("/skyport/end") },
 };
 

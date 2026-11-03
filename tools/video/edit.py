@@ -59,29 +59,52 @@ for k, n in enumerate(order):
     if not ws: continue
     parts[n] = {"start": ws[0]["s"], "end": ws[-1]["e"], "words": ws}
 
+import difflib
+md = open(os.path.join(VID, "VIDEO-SCRIPT.md"), encoding="utf-8").read()
+SCRIPT = [re.sub(r"[*]", "", t) for t in re.findall(r"^> (.+)$", md, flags=re.M)][:9]
+def aligned(n, heard):
+    """Script words for part n, each with a time taken from the matching heard word (or interpolated)."""
+    if n - 1 >= len(SCRIPT): return heard
+    sw = SCRIPT[n - 1].split()
+    a = [norm(x) for x in sw]; b = [norm(w["w"]) for w in heard]
+    sm = difflib.SequenceMatcher(None, a, b, autojunk=False)
+    if sm.ratio() < 0.6: return heard            # he said something different: caption what was said
+    t = [None] * len(sw)
+    for blk in sm.get_matching_blocks():
+        for j in range(blk.size): t[blk.a + j] = (heard[blk.b + j]["s"], heard[blk.b + j]["e"])
+    known = [i for i, x in enumerate(t) if x]
+    for i in range(len(sw)):
+        if t[i]: continue
+        lo = max([k for k in known if k < i], default=None); hi = min([k for k in known if k > i], default=None)
+        s0 = t[lo][1] if lo is not None else heard[0]["s"]; e0 = t[hi][0] if hi is not None else heard[-1]["e"]
+        span = [k for k in range(i, len(sw)) if not t[k] and (hi is None or k < hi)]
+        step = (e0 - s0) / (len(span) + 1); t[i] = (s0 + step * (span.index(i) + 0.5), s0 + step * (span.index(i) + 1))
+    return [{"w": sw[i], "s": t[i][0], "e": t[i][1]} for i in range(len(sw))]
 # ---------- cue times from keywords (seconds into the part's voice) ----------
-CUES = {1: {"enter": ["world"]}, 2: {"turn1": ["straight"], "turn2": ["island"], "travel": ["balloon"]},
-        3: {"depot": ["depot"], "rollout": ["rebuilt"], "sky": ["ground"]}, 4: {"tower": ["tower"], "mirror": ["turn"]},
-        5: {"turn": ["shop"], "enter": ["market"], "bag": ["numbers"], "next": ["stripsense", "strip"]},
-        6: {"forge": ["built"], "strike": ["strike"], "strike2": ["see"]},
-        7: {"crystal1": ["scene"], "crystal2": ["feedback"], "speak": ["typing"]},
-        8: {"plan1": ["families"], "plan2": ["campuses"], "plan3": ["creators"]}, 9: {"depart": ["next"]}}
+CUES = {1: {"enter": ("world", 1)}, 2: {"turn1": ("straight", 1), "turn2": ("island", 1), "travel": ("explore", 1)},
+        3: {"depot": ("depot", 1), "sky": ("until", 1)}, 4: {"tower": ("mirror", 1), "mirror": ("turn", 1)},
+        5: {"turn": ("spins", 1), "enter": ("shop", 1), "bag": ("numbers", 1), "next": ("stripsense", 1)},
+        6: {"forge": ("every", 1), "strike": ("strike", 1), "strike2": ("stage", 3)},
+        7: {"crystal1": ("scene", 1), "crystal2": ("feedback", 1), "speak": ("typing", 1)},
+        8: {"plan1": ("gap", 1), "plan2": ("creators", 1)}, 9: {"depart": ("next", 1)}}
 LEAD = 0.5   # seconds of picture before each part's voice starts
 timing = {}
 for n, p in parts.items():
     voice_len = p["end"] - p["start"]
     dur = round(LEAD + voice_len + 0.9, 2)
     cues = {}
-    for cue, keys in CUES.get(n, {}).items():
-        hit = next((w for w in p["words"] if norm(w["w"]) in keys), None)
-        if hit: cues[cue] = round(LEAD + hit["s"] - p["start"], 2)
+    aw = aligned(n, p["words"])           # script words with times, robust to misheard words
+    for cue, (word, nth) in CUES.get(n, {}).items():
+        hits = [w for w in aw if norm(w["w"]) == word]
+        if len(hits) >= nth: cues[cue] = round(LEAD + hits[nth - 1]["s"] - p["start"], 2)
     if n == 3 and "sky" in cues:   # the engine change (about 3 s) lands on "rebuilt the engine"; the sky-train lifts off on "until ... the ground"
-        until = next((w for w in p["words"] if norm(w["w"]) == "until"), None)
-        if until: cues["sky"] = round(LEAD + until["s"] - p["start"], 2)
         cues["rollout"] = round(max(cues.get("depot", 0) + 1.5, cues["sky"] - 3.0), 2)
         dur = max(dur, round(cues["sky"] + 3.4, 2))
     if n == 7: cues["speak"] = round(max(cues.get("crystal2", 0) + 1.0, dur - 4.4), 2)
-    if n == 8: dur = max(dur, cues.get("plan3", 0) + 2.2)   # say "the skyport": the cave lights up and carries us on
+    if n == 8: dur = max(dur, cues.get("plan2", 0) + 3.0)
+    if n == 4 and "tower" in cues and "mirror" in cues: cues["mirror"] = max(cues["mirror"], round(cues["tower"] + 2.6, 2))
+    if n == 6 and "forge" in cues and "strike" in cues: cues["strike"] = max(cues["strike"], round(cues["forge"] + 1.4, 2))
+    if n == 5 and "turn" in cues and "enter" in cues: cues["enter"] = max(cues["enter"], round(cues["turn"] + 1.2, 2))   # say "the skyport": the cave lights up and carries us on
     if n == 1 and "enter" in cues: dur = max(dur, cues["enter"] + 1.2)
     timing[str(n)] = {"dur": dur, "cues": cues, "voice": [p["start"], p["end"]]}
 json.dump(timing, open(os.path.join(WORK, "timing.json"), "w"), indent=1)
@@ -135,27 +158,6 @@ ass = ["[Script Info]", "ScriptType: v4.00+", "PlayResX: 1920", "PlayResY: 1080"
        "Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding",
        "Style: Cap,Segoe UI Semibold,46,&H00F4FBFF,&H000000FF,&H00140D0A,&H96140D0A,0,0,0,0,100,100,0.5,0,3,14,0,2,160,160,70,1", "",
        "[Events]", "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text"]
-import difflib
-md = open(os.path.join(VID, "VIDEO-SCRIPT.md"), encoding="utf-8").read()
-SCRIPT = [re.sub(r"[*]", "", t) for t in re.findall(r"^> (.+)$", md, flags=re.M)][:9]
-def aligned(n, heard):
-    """Script words for part n, each with a time taken from the matching heard word (or interpolated)."""
-    if n - 1 >= len(SCRIPT): return heard
-    sw = SCRIPT[n - 1].split()
-    a = [norm(x) for x in sw]; b = [norm(w["w"]) for w in heard]
-    sm = difflib.SequenceMatcher(None, a, b, autojunk=False)
-    if sm.ratio() < 0.6: return heard            # he said something different: caption what was said
-    t = [None] * len(sw)
-    for blk in sm.get_matching_blocks():
-        for j in range(blk.size): t[blk.a + j] = (heard[blk.b + j]["s"], heard[blk.b + j]["e"])
-    known = [i for i, x in enumerate(t) if x]
-    for i in range(len(sw)):
-        if t[i]: continue
-        lo = max([k for k in known if k < i], default=None); hi = min([k for k in known if k > i], default=None)
-        s0 = t[lo][1] if lo is not None else heard[0]["s"]; e0 = t[hi][0] if hi is not None else heard[-1]["e"]
-        span = [k for k in range(i, len(sw)) if not t[k] and (hi is None or k < hi)]
-        step = (e0 - s0) / (len(span) + 1); t[i] = (s0 + step * (span.index(i) + 0.5), s0 + step * (span.index(i) + 1))
-    return [{"w": sw[i], "s": t[i][0], "e": t[i][1]} for i in range(len(sw))]
 for k, n in enumerate(seq):
     ws = aligned(int(n), parts[int(n)]["words"]); shift = t_offsets[k] + LEAD - timing[n]["voice"][0]
     chunk = []

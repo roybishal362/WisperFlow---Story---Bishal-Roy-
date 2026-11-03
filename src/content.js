@@ -254,7 +254,7 @@ export const INTRO = {
     how: ["Drag to turn the world, or use ⟲ ⟳", "Click an island to travel there", "In a hurry? The 60-second version is always at the top right"] },
   city: { title: "The Vast City", what: "Who I am, in seven rings: my roots, my values, how I learned, where I've worked, the finals I've reached, the people I teach, and a crown at the top.",
     how: ["Pick a ring, or start at Ring I and climb", "The Crown opens once you've explored every realm"] },
-  line: { title: "The Long Line", what: "My journey from school to today is a train, because it never ran smoothly. Stations are the milestones. Depots are where something broke, and where I rebuilt the engine before moving on.",
+  line: { title: "The Long Line", what: "My journey from Class 10 to today, as a train. Stations are the milestones. Every depot is a setback, where the train broke down. At every depot I learned, rebuilt myself, and rolled out with a better engine: an upgraded version of me.",
     how: ["Read the station card and its ticket", "At a depot, press Roll out to change the engine", "Use ← → or the buttons to ride the line"] },
   lake: { title: "The Lake of Mirrors", what: "You can't escape yourself: to see your own face, you look in a mirror. Every tower here is a win, and its reflection is what that win cost me and what it taught me. My wins aren't the whole story, and neither are my losses. Together, they make me.",
     how: ["Tap a tower to fly in and see the win", "Press ⇅ Turn the mirror to see the other side of the story", "The gold is what each one taught me"] },
