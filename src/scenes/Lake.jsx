@@ -1,4 +1,4 @@
-// The Lake of Mirrors: one painted lake with 8 towers. Each tower: the win, the reflection (what it cost), the gold (how I mended it).
+// The Lake of Mirrors: one painted lake with 8 towers. Each tower: the win, the reflection (what it cost), the gold (what it taught me).
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Living from "../components/Living";
@@ -59,7 +59,7 @@ export default function Lake({ route }) {
           {!mirrorAll && <Btn className="sm" onClick={() => fly(0)}>✦ START AT TOWER I</Btn>}
         </div>
         {mirrorAll && <motion.div className="panel lk-quote" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.9 }}>"Both are true at the same time."</motion.div>}
-        <Dialogue expr="thinking" text={mirrorAll ? "Turn it back whenever you like. I keep both." : "Every tower is something I'm proud of. Look down at the water: that's the part I don't usually tell. Tap a tower."} />
+        <Dialogue expr="thinking" text={mirrorAll ? "The losses stand tall now, and the wins are the reflection. Both are true. Turn it back whenever you like; I keep both." : "You can't escape yourself in a mirror. Every tower is a win, and the water shows what it cost me. Tap a tower."} />
       </>
     );
   }
@@ -88,12 +88,12 @@ export default function Lake({ route }) {
             {flip ? (
               <motion.div key="other" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.45, delay: 0.35 }}>
                 <div className="sec s2"><b>THE REFLECTION · WHAT IT COST ME</b><p>{t.refl}</p></div>
-                <div className="sec s3"><b>THE GOLD · HOW I MENDED IT</b><p>{t.gold}</p></div>
+                <div className="sec s3"><b>THE GOLD · WHAT IT TAUGHT ME</b><p>{t.gold}</p></div>
               </motion.div>
             ) : (
               <motion.button type="button" key="hint" className="lk-hint" onClick={() => setFlip(true)} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                 <b>⇅ THE WATER HIDES THE OTHER HALF</b>
-                <span>Turn the mirror to see what this win cost me, and how I mended it.</span>
+                <span>Turn the mirror to see what this win cost me, and what it taught me.</span>
               </motion.button>
             )}
           </AnimatePresence>

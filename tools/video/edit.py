@@ -39,7 +39,7 @@ words = [{"w": w.word.strip(), "s": w.start, "e": w.end} for s in segs for w in 
 open(os.path.join(OUT, NAME + "-transcript.txt"), "w", encoding="utf-8").write(" ".join(f"[{w['s']:.1f}]{w['w']}" for w in words))
 
 # ---------- 2. split on the spoken "Part N" markers ----------
-NUM = {"one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8}
+NUM = {"one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9, **{str(i): i for i in range(1, 10)}}
 norm = lambda t: re.sub(r"[^a-z0-9]", "", t.lower())
 marks = []
 for i, w in enumerate(words[:-1]):
@@ -60,11 +60,12 @@ for k, n in enumerate(order):
     parts[n] = {"start": ws[0]["s"], "end": ws[-1]["e"], "words": ws}
 
 # ---------- cue times from keywords (seconds into the part's voice) ----------
-CUES = {1: {"enter": ["world"]}, 2: {"turn1": ["floating"], "turn2": ["roy"], "travel": ["balloon"]},
-        3: {"depot": ["depot"], "rollout": ["rebuilt"], "sky": ["ground"]}, 4: {"tower": ["tower", "towers"], "mirror": ["mirror"]},
-        5: {"turn": ["project"], "enter": ["shop"], "bag": ["numbers"], "next": ["stripsense", "strip"]},
-        6: {"crystal1": ["scene"], "crystal2": ["feedback"], "speak": ["typing"]},
-        7: {"plan": ["routes", "three"], "council": ["creators", "hinglish"]}, 8: {}}
+CUES = {1: {"enter": ["world"]}, 2: {"turn1": ["straight"], "turn2": ["island"], "travel": ["balloon"]},
+        3: {"depot": ["depot"], "rollout": ["rebuilt"], "sky": ["ground"]}, 4: {"tower": ["tower"], "mirror": ["turn"]},
+        5: {"turn": ["shop"], "enter": ["market"], "bag": ["numbers"], "next": ["stripsense", "strip"]},
+        6: {"forge": ["built"], "strike": ["strike"], "strike2": ["see"]},
+        7: {"crystal1": ["scene"], "crystal2": ["feedback"], "speak": ["typing"]},
+        8: {"plan1": ["families"], "plan2": ["campuses"], "plan3": ["creators"]}, 9: {"depart": ["next"]}}
 LEAD = 0.5   # seconds of picture before each part's voice starts
 timing = {}
 for n, p in parts.items():
@@ -79,7 +80,8 @@ for n, p in parts.items():
         if until: cues["sky"] = round(LEAD + until["s"] - p["start"], 2)
         cues["rollout"] = round(max(cues.get("depot", 0) + 1.5, cues["sky"] - 3.0), 2)
         dur = max(dur, round(cues["sky"] + 3.4, 2))
-    if n == 6: cues["speak"] = round(max(cues.get("crystal2", 0) + 1.0, dur - 4.4), 2)   # say "the skyport": the cave lights up and carries us on
+    if n == 7: cues["speak"] = round(max(cues.get("crystal2", 0) + 1.0, dur - 4.4), 2)
+    if n == 8: dur = max(dur, cues.get("plan3", 0) + 2.2)   # say "the skyport": the cave lights up and carries us on
     if n == 1 and "enter" in cues: dur = max(dur, cues["enter"] + 1.2)
     timing[str(n)] = {"dur": dur, "cues": cues, "voice": [p["start"], p["end"]]}
 json.dump(timing, open(os.path.join(WORK, "timing.json"), "w"), indent=1)
@@ -135,7 +137,7 @@ ass = ["[Script Info]", "ScriptType: v4.00+", "PlayResX: 1920", "PlayResY: 1080"
        "[Events]", "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text"]
 import difflib
 md = open(os.path.join(VID, "VIDEO-SCRIPT.md"), encoding="utf-8").read()
-SCRIPT = [re.sub(r"[*]", "", t) for t in re.findall(r"^> (.+)$", md, flags=re.M)][:8]
+SCRIPT = [re.sub(r"[*]", "", t) for t in re.findall(r"^> (.+)$", md, flags=re.M)][:9]
 def aligned(n, heard):
     """Script words for part n, each with a time taken from the matching heard word (or interpolated)."""
     if n - 1 >= len(SCRIPT): return heard

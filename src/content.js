@@ -250,17 +250,17 @@ export const SKYPORT = {
 
 // ---------- realm intros: what each place is, and how to explore it ----------
 export const INTRO = {
-  world: { title: "The Vast Realm", what: "This world is my story. Each floating island is one part of it, and Roy, a tiny version of me, flies you between them.",
+  world: { title: "The Vast Realm", what: "My story was never a straight line of wins, so it isn't a page. It's a world: each floating island holds one part of it, and Roy, a tiny version of me, flies you between them.",
     how: ["Drag to turn the world, or use ⟲ ⟳", "Click an island to travel there", "In a hurry? The 60-second version is always at the top right"] },
   city: { title: "The Vast City", what: "Who I am, in seven rings: my roots, my values, how I learned, where I've worked, the finals I've reached, the people I teach, and a crown at the top.",
     how: ["Pick a ring, or start at Ring I and climb", "The Crown opens once you've explored every realm"] },
-  line: { title: "The Long Line", what: "My journey from school to today, as a train. Stations are the milestones. Depots are where something broke, and the engine I rebuilt there.",
+  line: { title: "The Long Line", what: "My journey from school to today is a train, because it never ran smoothly. Stations are the milestones. Depots are where something broke, and where I rebuilt the engine before moving on.",
     how: ["Read the station card and its ticket", "At a depot, press Roll out to change the engine", "Use ← → or the buttons to ride the line"] },
-  lake: { title: "The Lake of Mirrors", what: "Every tower here is a win I'm proud of. Its reflection in the water is the part I don't usually tell: what that win cost me, and how I mended it.",
-    how: ["Tap a tower to fly in and see the win", "Press ⇅ Turn the mirror to see the other side of the story", "The gold cracks are how I fixed it"] },
-  ring: { title: "The Lantern Ring", what: "A night market of twelve shops. Each shop is one thing I've built, and each one hands you a card with the real numbers.",
+  lake: { title: "The Lake of Mirrors", what: "You can't escape yourself: to see your own face, you look in a mirror. Every tower here is a win, and its reflection is what that win cost me and what it taught me. My wins aren't the whole story, and neither are my losses. Together, they make me.",
+    how: ["Tap a tower to fly in and see the win", "Press ⇅ Turn the mirror to see the other side of the story", "The gold is what each one taught me"] },
+  ring: { title: "The Lantern Ring", what: "Jumping from project to project always felt like hopping from shop to shop, so my projects became a night market. Each shop is one thing I've built, and each one hands you a card with the real numbers.",
     how: ["Drag, or use ⟲ ⟳, to turn around the fountain", "Enter the shop in front of you", "Add its card to your bag, and collect all twelve"] },
-  crafters: { title: "The Crafters' Quarter", what: "Five workshops, one for each family of my skills: engineering, data and machine learning, generative AI, research, and communication.",
+  crafters: { title: "The Crafters' Quarter", what: "Skills aren't a list of logos; they're built, one stage at a time. So each family of my skills has its own workshop and its own makers: engineering, data and machine learning, generative AI, research, and communication.",
     how: ["Pick a workshop door", "Press its action and watch the item grow, stage by stage", "Each stage is a real skill, with the tools I use"] },
   echo: { title: "The Echo Caves", what: "Proof that this whole world was built by voice. Each crystal holds a sentence I really said while building it, and the cave can hear you too.",
     how: ["Pick a crystal to read what I said, word for word", "Hold the 🎙 and say a realm, like \"take me to the lake\"", "No microphone? Tap one of the phrases"] },

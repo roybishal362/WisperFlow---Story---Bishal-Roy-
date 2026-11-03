@@ -18,12 +18,13 @@ const ALL = ["world", "city", "line", "lake", "ring", "crafters", "echo", "skypo
 const PARTS = {
   1: { dur: 15, start: "/", cues: { enter: 10.5 } },
   2: { dur: 18, start: "/world", cues: { turn1: 1.5, turn2: 4.5, travel: 10 } },
-  3: { dur: 30, start: "/line/leg1", cues: { depot: 8, rollout: 16, sky: 23 } },
-  4: { dur: 20, start: "/lake", cues: { tower: 5, mirror: 11 } },
-  5: { dur: 22, start: "/ring", cues: { turn: 1.5, enter: 4.5, bag: 9, next: 12.5 } },
-  6: { dur: 30, start: "/echo", cues: { crystal1: 9, crystal2: 15, speak: 25 } },
-  7: { dur: 25, start: "/skyport", cues: { plan: 9, council: 17 } },
-  8: { dur: 12, start: "/skyport/end", cues: {} },
+  3: { dur: 27, start: "/line/leg1", cues: { depot: 8, rollout: 16, sky: 22 } },
+  4: { dur: 25, start: "/lake", cues: { tower: 8, mirror: 13 } },
+  5: { dur: 21, start: "/ring", cues: { turn: 1.5, enter: 4.5, bag: 9, next: 15 } },
+  6: { dur: 13, start: "/crafters", cues: { forge: 3, strike: 8, strike2: 11 } },
+  7: { dur: 26, start: "/echo", cues: { crystal1: 9, crystal2: 15, speak: 21 } },
+  8: { dur: 19, start: "/skyport", cues: { plan1: 9, plan2: 13, plan3: 16 } },
+  9: { dur: 13, start: "/skyport/council", cues: { depart: 6 } },
 };
 
 const browser = await puppeteer.launch({
@@ -43,7 +44,7 @@ const click = (text) => page.evaluate((t) => [...document.querySelectorAll("butt
 const clickSel = (sel, i = 0) => page.evaluate((s, i) => document.querySelectorAll(s)[i]?.click(), sel, i);
 
 // warm every realm's paintings so nothing pops in on camera
-for (const h of ["/world", "/city", "/line/leg1", "/line/depot2", "/line/leg3", "/line/leg5", "/lake", "/lake/2", "/ring", "/ring/oracle", "/ring/apothecary", "/crafters/forge", "/echo", "/skyport", "/skyport/plan/1", "/skyport/council", "/skyport/end"]) { await hash(h); await sleep(2600); }
+for (const h of ["/world", "/city", "/line/leg1", "/line/depot2", "/line/leg3", "/line/leg5", "/lake", "/lake/2", "/ring", "/ring/oracle", "/ring/apothecary", "/crafters", "/crafters/forge", "/echo", "/skyport", "/skyport/plan/1", "/skyport/plan/2", "/skyport/plan/3", "/skyport/council", "/skyport/end"]) { await hash(h); await sleep(2600); }
 
 const ACTIONS = {
   1: { enter: () => click("ENTER THE REALM") },
@@ -53,9 +54,11 @@ const ACTIONS = {
   4: { tower: () => clickSel(".lk-tw", 1), mirror: () => click("TURN THE MIRROR") },
   5: { turn: () => page.evaluate(() => [...document.querySelectorAll(".lr-shop button")].find((b) => b.getAttribute("aria-label").includes("Oracle"))?.click()),
        enter: () => click("ENTER THE ORACLE"), bag: () => click("ADD TO BAG"), next: () => click("NEXT SHOP") },
-  6: { crystal1: () => clickSel(".ec-list button", 0), crystal2: () => clickSel(".ec-list button", 1), speak: () => click("the skyport") },
-  7: { plan: () => clickSel(".sp-route", 0), council: () => hash("/skyport/council") },
-  8: {},
+  6: { forge: () => page.evaluate(() => [...document.querySelectorAll(".cr-door")].find((b) => b.textContent.includes("Forge"))?.click()),
+       strike: () => click("STRIKE THE ANVIL"), strike2: () => click("STRIKE THE ANVIL") },
+  7: { crystal1: () => clickSel(".ec-list button", 0), crystal2: () => clickSel(".ec-list button", 1), speak: () => click("the skyport") },
+  8: { plan1: () => clickSel(".sp-route", 0), plan2: () => hash("/skyport/plan/2"), plan3: () => hash("/skyport/plan/3") },
+  9: { depart: () => hash("/skyport/end") },
 };
 
 for (const [n, def] of Object.entries(PARTS)) {
@@ -64,6 +67,7 @@ for (const [n, def] of Object.entries(PARTS)) {
   // set the starting screen off-camera
   if (n === "1") { await page.evaluate(() => { location.hash = "/"; }); await page.reload({ waitUntil: "networkidle0" }); await hideDialogue(); await sleep(4500); }
   else { await hash(def.start); await sleep(3600); }
+  if (n === "6") await page.evaluate(() => { const s = JSON.parse(localStorage.getItem("vast-realm-v1")); s.stages = {}; localStorage.setItem("vast-realm-v1", JSON.stringify(s)); });
   if (n === "5") { await page.keyboard.press("ArrowRight"); await sleep(900); } // face away from the Oracle, so the turn to it shows on camera
   const file = path.join(OUT, `part${n}.webm`);
   const rec = await page.screencast({ path: file, ffmpegPath: FFMPEG, fps: 30, quality: 18 });

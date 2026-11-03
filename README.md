@@ -87,8 +87,8 @@ Steam (school in Chandrapur) → diesel (college in Pune) → electric (the hack
 <td><img src="docs/screens/08-line-sky.jpg" alt="Leg V: the sky-train lifting off the end of the rails"></td>
 </tr></table>
 
-### The Lake of Mirrors: eight wins, and what each one cost
-Eight towers stand in a still lake, each with gold-mended cracks, and each one stands for something (the Lighthouse keeps its light on through the storm: my health, and coming back). Tap a tower and the camera flies in, but at first you only see **the win**. **Turn the mirror** and the tower flips: **the reflection** shows what that win cost me, and **the gold** shows how I mended it. Turn the whole lake and the failures stand up while the wins become the reflection.
+### The Lake of Mirrors: you can't escape yourself
+To see your own face, you look in a mirror. Every tower in this lake is a win, and each one stands for something (the Lighthouse keeps its light on through the storm: my health, and coming back). Tap a tower and you see only **the win**. **Turn the mirror** and the tower flips: **the reflection** shows what that win cost me, and **the gold** shows what it taught me. Turn the whole lake and the losses stand up while the wins become the reflection. My wins aren't the whole story, and neither are my losses. Together, they make me.
 
 <table><tr>
 <td><img src="docs/screens/09-lake.jpg" alt="The Lake of Mirrors with eight labelled towers"></td>
@@ -97,7 +97,7 @@ Eight towers stand in a still lake, each with gold-mended cracks, and each one s
 </tr></table>
 
 ### The Lantern Ring: twelve builds, twelve shops
-A round night market. Stand at the fountain and turn to browse; step inside a shop and it hands you an **item card** with the project's real numbers. Collect all twelve to fill your bag.
+Jumping from project to project always felt like hopping from shop to shop, so my projects became a round night market. Stand at the fountain and turn to browse; step inside a shop and it hands you an **item card** with the project's real numbers. Collect all twelve to fill your bag.
 
 <table><tr>
 <td><img src="docs/screens/12-plaza.jpg" alt="The 360-degree Lantern Ring plaza"></td>
@@ -120,7 +120,7 @@ A round night market. Stand at the fountain and turn to browse; step inside a sh
 | The Gatekeeper's Tower | **Urumi** · MCP gateway | 4 layers · 49 tests · Kubernetes (Helm) |
 
 ### The Crafters' Quarter: five workshops, five families of skills
-Dwarves (engineering), alchemists (data & ML), witches (generative AI), elves (research), bards (communication). Press the action (*strike the anvil*, *stir the cauldron*, *cast the next page*…) and the item grows one stage, with a flash and a burst of the real tool logos.
+Skills aren't a list of logos; they're built, one stage at a time. Dwarves (engineering), alchemists (data & ML), witches (generative AI), elves (research), bards (communication). Press the action (*strike the anvil*, *stir the cauldron*, *cast the next page*…) and the item grows one stage, with a flash and a burst of the real tool logos.
 
 <table><tr>
 <td><img src="docs/screens/14-crafters.jpg" alt="The Crafters' Quarter island with five workshop doors"></td>
