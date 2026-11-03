@@ -57,6 +57,18 @@ export const store = {
 export const useStore = () => useSyncExternalStore(store.subscribe, store.get);
 
 // ---------- misc ----------
-export const reducedMotion = () => window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+// Motion: full animations by default (the story depends on them); visitors can turn them off with the HUD switch.
+const MKEY = "vast-realm-motion";
+let motionOn = true;
+try { motionOn = localStorage.getItem(MKEY) !== "off"; } catch { /* private mode */ }
+const msubs = new Set();
+export const motion = {
+  get: () => motionOn,
+  set(v) { motionOn = v; try { localStorage.setItem(MKEY, v ? "on" : "off"); } catch { /* private mode */ } document.documentElement.classList.toggle("calm", !v); msubs.forEach((f) => f()); },
+  subscribe: (f) => { msubs.add(f); return () => msubs.delete(f); },
+};
+if (typeof document !== "undefined") document.documentElement.classList.toggle("calm", !motionOn);
+export const useMotion = () => useSyncExternalStore(motion.subscribe, motion.get);
+export const reducedMotion = () => !motionOn;
 export const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 export const wait = (ms) => new Promise((r) => setTimeout(r, ms));

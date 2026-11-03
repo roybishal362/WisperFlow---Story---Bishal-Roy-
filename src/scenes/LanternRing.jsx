@@ -29,6 +29,7 @@ function Plaza() {
   const yawRef = useRef(yaw); yawRef.current = yaw;
   const drag = useRef(null), moved = useRef(false), anim = useRef(0);
   useEffect(() => { lastYaw = yaw; }, [yaw]);
+  const alive = useRef(true); useEffect(() => () => { alive.current = false; }, []);
   useEffect(() => () => cancelAnimationFrame(anim.current), []);
 
   const animateYaw = useCallback((to, ms = 550) => new Promise((res) => {
@@ -59,7 +60,7 @@ function Plaza() {
     if (entering) return;
     setEntering(SHOPS[j].id);
     await wait(reducedMotion() ? 0 : 650);
-    go("/ring/" + SHOPS[j].id);
+    if (alive.current && location.hash === "#/ring") go("/ring/" + SHOPS[j].id);
   }, [entering]);
   const pick = (j) => {
     if (moved.current || entering) return;

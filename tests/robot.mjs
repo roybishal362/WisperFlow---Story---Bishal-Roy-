@@ -6,8 +6,9 @@ import path from "node:path";
 
 const base = process.argv.find((a) => a.startsWith("http")) || "http://127.0.0.1:4173";
 const mobile = process.argv.includes("--mobile");
+const size = (process.argv.find((a) => a.startsWith("--size=")) || "").slice(7);
 const only = (process.argv.find((a) => a.startsWith("--only=")) || "").slice(7);
-const out = path.resolve("tests/shots" + (mobile ? "-mobile" : ""));
+const out = path.resolve("tests/shots" + (mobile ? "-mobile" : size ? "-" + size : ""));
 fs.mkdirSync(out, { recursive: true });
 
 const STEPS = [
@@ -29,8 +30,10 @@ const browser = await puppeteer.launch({
   headless: "new", args: ["--no-sandbox", "--autoplay-policy=no-user-gesture-required"],
 });
 const page = await browser.newPage();
-await page.setViewport(mobile ? { width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true } : { width: 1440, height: 900 });
-if (!process.argv.includes("--reduced")) await page.emulateMediaFeatures([{ name: "prefers-reduced-motion", value: "no-preference" }]);
+const [sw, sh] = size ? size.split("x").map(Number) : [1440, 900];
+await page.setViewport(mobile ? { width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true } : { width: sw, height: sh });
+// like Bishal's laptop (Windows animation effects off): the site must still animate and lay out correctly
+await page.emulateMediaFeatures([{ name: "prefers-reduced-motion", value: "reduce" }]);
 const problems = [];
 page.on("console", (m) => { if (["error", "warning"].includes(m.type())) problems.push(`[console.${m.type()}] ${m.text()}`); });
 page.on("pageerror", (e) => problems.push(`[pageerror] ${e.message}`));
@@ -43,6 +46,15 @@ for (const [name, hash, act] of STEPS) {
   await page.evaluate((h) => { window.location.hash = h.slice(1); }, hash);
   await sleep(2900); // cloud wipe + scene entrance
   if (act) await act(page);
+  const bad = await page.evaluate(() => {
+    const W = innerWidth, H = innerHeight, out = [];
+    for (const e of document.querySelectorAll(".scene .panel, .scene .dlg, .scene .ll-tkw, .scene .ll-scw, .scene .lr-card, .scene .sp-scw, .scene .btn")) {
+      const r = e.getBoundingClientRect(); if (!r.width || getComputedStyle(e).visibility === "hidden") continue;
+      if (r.left < -4 || r.top < -4 || r.right > W + 4 || r.bottom > H + 4) out.push(`${e.className.toString().slice(0, 40)} @ ${[r.left, r.top, r.right, r.bottom].map(Math.round)}`);
+    }
+    return out;
+  });
+  bad.forEach((b) => problems.push(`[offscreen] ${name}: ${b}`));
   await page.screenshot({ path: path.join(out, name + ".png") });
   process.stdout.write(".");
 }

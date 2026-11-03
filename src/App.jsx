@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Stage from "./components/Stage";
 import { Btn } from "./components/Ui";
-import { useRoute, go, preload, art, store, useStore, wait } from "./lib/core";
+import { useRoute, go, preload, art, store, useStore, wait, motion as motionSwitch, useMotion } from "./lib/core";
 import { REALMS, SIXTY, PERSON } from "./content";
 import { PRELOAD } from "./lib/preloads";
 import Title from "./scenes/Title";
@@ -57,10 +57,16 @@ function Hud({ onSixty, realm }) {
       <div className="hud-tr">
         <button type="button" className="pillh" onClick={onSixty}>◷ 60-second version</button>
         <div className="pillh" title="Realms explored">◈ {n} / {REALM_IDS.length}</div>
+        <MotionBtn />
         {realm !== "world" && <button type="button" className="ico" onClick={() => go("/world")} aria-label="World map" title="World map">🗺</button>}
       </div>
     </div>
   );
+}
+
+function MotionBtn() {
+  const on = useMotion();
+  return <button type="button" className="ico" onClick={() => motionSwitch.set(!on)} aria-pressed={on} aria-label={on ? "Turn animations off" : "Turn animations on"} title={on ? "Animations on (click to calm)" : "Animations off (click to turn on)"}>{on ? "✨" : "⏸"}</button>;
 }
 
 function Sixty({ onClose }) {

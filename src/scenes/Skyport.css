@@ -25,15 +25,16 @@
 .sp-treaty .wax{position:absolute;left:50%;bottom:4px;translate:-50% 0;width:48px;height:48px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#e05a4a,#8a1a12);color:#ffd9c8;display:grid;place-items:center;font-family:Cinzel,serif;font-weight:900;font-size:14px;box-shadow:0 3px 8px rgba(0,0,0,.4)}
 .sp-acts{position:absolute;right:40px;top:200px;display:flex;flex-direction:column;gap:10px;align-items:stretch;z-index:20;width:250px}
 .sp-acts .btn{text-align:center}
-.sp-end{position:absolute;left:30%;top:170px;translate:-50% 0;text-align:center;z-index:20;text-shadow:0 3px 18px rgba(0,0,0,.6)}
+.sp-end{position:absolute;left:60px;top:170px;text-align:left;z-index:20;text-shadow:0 3px 18px rgba(0,0,0,.6)}
 .sp-end .pre{font-family:Cinzel,serif;letter-spacing:.5em;color:#fff3d6;font-size:14px}
 .sp-end h1{font-family:'Cinzel Decorative',Cinzel,serif;font-size:48px;color:#fff;white-space:nowrap;margin-top:6px}
-.sp-end .bb{display:flex;gap:12px;justify-content:center;margin-top:22px;flex-wrap:wrap}
+.sp-end .bb{display:flex;gap:12px;justify-content:flex-start;margin-top:22px;flex-wrap:wrap;max-width:720px}
 .portrait .sp-plans{left:60px;top:150px;width:700px}
 .portrait .sp-days{left:40px;right:40px;width:auto;top:auto;bottom:440px}
 .portrait .sp-nav{left:40px;right:40px;bottom:250px;max-width:none;justify-content:center}
 .portrait .sp-plan{width:740px;top:120px}
 .portrait .sp-treaty{width:640px;top:150px}
 .portrait .sp-acts{left:60px;right:60px;width:auto;top:auto;bottom:250px}
-.portrait .sp-end{left:50%;top:260px}
+.portrait .sp-end{left:40px;right:40px;top:260px;text-align:center}
+.portrait .sp-end .bb{justify-content:center;max-width:none}
 .portrait .sp-end h1{font-size:44px;white-space:normal}

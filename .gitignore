@@ -28,3 +28,4 @@ tests/shots*/
 tests/flows*/
 tests/probe*
 tests/depot-*.png
+tests/repro-*.png

@@ -1,5 +1,5 @@
 // The Long Line: the journey as a train. Legs (stations + tickets), depots (what broke, what I rebuilt, engine change), one red signal.
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Living from "../components/Living";
 import Particles from "../components/Particles";
@@ -56,13 +56,15 @@ export default function LongLine({ route }) {
     if (idx > 0) go("/line/" + LINE[idx - 1].id); else go("/world");
   }, [idx]);
 
+  const alive = useRef(true); useEffect(() => () => { alive.current = false; }, []);
   const rollOut = useCallback(async () => {
     if (fx) return;
+    const here = location.hash;
     if (reducedMotion()) { next(); return; }
-    setFx("sparks"); await wait(950);
-    setFx("flash"); await wait(450);
-    setFx("banner"); await wait(1500);
-    setFx(null); next();
+    setFx("sparks"); await wait(950); if (!alive.current) return;
+    setFx("flash"); await wait(450); if (!alive.current) return;
+    setFx("banner"); await wait(1500); if (!alive.current) return;
+    setFx(null); if (location.hash === here) next();
   }, [fx, next]);
 
   useEffect(() => { setFx(null); }, [id]);
@@ -77,7 +79,7 @@ export default function LongLine({ route }) {
 
   const cur = st.kind === "leg" ? st.leg : st.kind === "depot" ? (fx === "banner" ? st.to : st.from) : 3;
   return (
-    <div className={"ll ll-" + st.kind + (fx === "sparks" ? " shake" : "")}>
+    <div className={"ll kind-" + st.kind + (fx === "sparks" ? " shake" : "")}>
       <AnimatePresence initial={false} custom={dir}>
         <motion.div key={st.id} className="ll-bg" custom={dir}
           variants={{ in: (d) => ({ x: d * 320, opacity: 0 }), show: { x: 0, opacity: 1 }, out: (d) => ({ x: d * -320, opacity: 0 }) }}

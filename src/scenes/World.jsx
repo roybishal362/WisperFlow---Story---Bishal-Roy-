@@ -58,7 +58,8 @@ export default function World({ busy }) {
     };
     anim.current = requestAnimationFrame(step);
   }), []);
-  useEffect(() => () => cancelAnimationFrame(anim.current), []);
+  const travelTimer = useRef(0);
+  useEffect(() => () => { cancelAnimationFrame(anim.current); clearTimeout(travelTimer.current); }, []);
 
   // ---------- drag to turn ----------
   const onDown = (e) => {
@@ -120,7 +121,7 @@ export default function World({ busy }) {
     if (layer) layer.style.transformOrigin = `${target.x}px ${target.y}px`;
     if (layer) layer.animate([{ transform: "scale(1)" }, { transform: "scale(1.35)" }],
       { duration: dur, easing: "cubic-bezier(.6,0,.4,1)", fill: "forwards", delay: dur * 0.25 }).finished.catch(() => {});
-    setTimeout(() => go(r.route), dur * 0.95);
+    travelTimer.current = setTimeout(() => { if (location.hash === "#/world") go(r.route); }, dur * 0.95); // only if the visitor is still here
   }, [L, animateYaw, flying, busy]);
 
   const pick = (r) => {

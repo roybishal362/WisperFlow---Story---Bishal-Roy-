@@ -11,7 +11,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const browser = await puppeteer.launch({ executablePath: "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe", headless: "new", args: ["--no-sandbox"] });
 const page = await browser.newPage();
 await page.setViewport(mobile ? { width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true } : { width: 1440, height: 900 });
-if (!process.argv.includes("--reduced")) await page.emulateMediaFeatures([{ name: "prefers-reduced-motion", value: "no-preference" }]);
+await page.emulateMediaFeatures([{ name: "prefers-reduced-motion", value: "reduce" }]); // like Bishal's laptop
 const problems = [], results = [];
 page.on("console", (m) => { if (["error", "warning"].includes(m.type())) problems.push(`[console.${m.type()}] ${m.text()}`); });
 page.on("pageerror", (e) => problems.push(`[pageerror] ${e.message}`));
@@ -38,13 +38,18 @@ if (mobile) { // a real finger: first tap shows the preview card, its button tra
   await page.touchscreen.tap(box.x, box.y); await sleep(500); await shot("02a-preview");
   await clickText("button", "TRAVEL HERE");
 } else await page.evaluate(() => [...document.querySelectorAll(".w-hit")].find((b) => b.getAttribute("aria-label").includes("Lake"))?.click());
-await sleep(1000); await shot("02-balloon-midflight"); await sleep(3400); await expect("island travel to the lake", "#/lake");
+await sleep(1000); await shot("02-balloon-midflight");
+{ const moved = await page.evaluate(() => { const b = document.querySelector(".w-balloon"); return b ? getComputedStyle(b).transform : "none"; });
+  const ok = moved !== "none" && !moved.includes(", 870, 150)") && !moved.includes(", 560, 380)");
+  results.push(`${ok ? "PASS" : "FAIL"} balloon is flying mid-trip: ${moved}`); if (!ok) problems.push("[anim] balloon did not fly"); } await sleep(3400); await expect("island travel to the lake", "#/lake");
 // 3. click tower III -> fly-in
 await page.evaluate(() => document.querySelectorAll(".lk-tw")[2]?.click()); await sleep(450); await shot("03-tower-zoom"); await sleep(1600); await expect("tower click", "#/lake/3");
 await clickText("button", "TURN THE MIRROR"); await sleep(1100); await shot("04-tower-mirrored");
 // 4. long line: depot roll-out
 await page.evaluate(() => { location.hash = "/line/depot2"; }); await sleep(3200);
-await clickText("button", "ROLL OUT"); await sleep(500); await shot("05-depot-sparks"); await sleep(700); await shot("06-depot-flash"); await sleep(700); await shot("07-depot-banner");
+await clickText("button", "ROLL OUT"); await sleep(500); await shot("05-depot-sparks");
+{ const sp = await page.evaluate(() => !!document.querySelector(".ll-sparks")); results.push(`${sp ? "PASS" : "FAIL"} depot sparks appear`); if (!sp) problems.push("[anim] no depot sparks"); } await sleep(700); await shot("06-depot-flash"); await sleep(700); await shot("07-depot-banner");
+{ const bn = await page.evaluate(() => !!document.querySelector(".ll-banner")); results.push(`${bn ? "PASS" : "FAIL"} engine-upgrade banner appears`); if (!bn) problems.push("[anim] no upgrade banner"); }
 await sleep(2200); await expect("depot rolls out to the next leg", "#/line/leg3");
 await clickText("button", "NEXT STOP"); await sleep(400); await shot("08-train-departing"); await sleep(1500); await expect("next stop", "#/line/depot3");
 // 5. lantern ring: enter the front shop, add to bag
@@ -57,13 +62,15 @@ const bag = await page.evaluate(() => JSON.parse(localStorage.getItem("vast-real
 results.push(`${bag.includes("apothecary") ? "PASS" : "FAIL"} bag saved: ${JSON.stringify(bag)}`); if (!bag.includes("apothecary")) problems.push("[flow] bag not saved");
 // 6. crafters: strike twice
 await page.evaluate(() => { location.hash = "/crafters/forge"; }); await sleep(3200);
-await clickText("button", "STRIKE THE ANVIL"); await sleep(250); await shot("11-forge-strike"); await sleep(1200);
+await clickText("button", "STRIKE THE ANVIL"); await sleep(250); await shot("11-forge-strike");
+{ const bu = await page.evaluate(() => document.querySelectorAll(".cr-burst img").length); results.push(`${bu ? "PASS" : "FAIL"} forge logo burst (${bu} logos)`); if (!bu) problems.push("[anim] no logo burst"); } await sleep(1200);
 await clickText("button", "STRIKE THE ANVIL"); await sleep(1300);
 const st = await page.evaluate(() => (JSON.parse(localStorage.getItem("vast-realm-v1") || "{}").stages || {}).forge);
 results.push(`${st === 2 ? "PASS" : "FAIL"} forge stage after two strikes: ${st}`); if (st !== 2) problems.push("[flow] forge stage wrong");
 // 7. echo: phrase chip -> lights up -> goes to the lake
 await page.evaluate(() => { location.hash = "/echo"; }); await sleep(3200);
-await clickText("button", "take me to the lake"); await sleep(700); await shot("12-echo-lit"); await sleep(4200); await expect("echo phrase travels", "#/lake");
+await clickText("button", "take me to the lake"); await sleep(700); await shot("12-echo-lit");
+{ const lit = await page.evaluate(() => !!document.querySelector(".ec-lit") && !!document.querySelector(".ec-rings")); results.push(`${lit ? "PASS" : "FAIL"} echo cave lights up`); if (!lit) problems.push("[anim] echo did not light"); } await sleep(4200); await expect("echo phrase travels", "#/lake");
 // 8. 60-second overlay opens and closes
 await clickText("button", "60-second version"); await sleep(600); await shot("13-sixty");
 const open = await page.evaluate(() => !!document.querySelector(".sixty")); await page.keyboard.press("Escape"); await sleep(500);

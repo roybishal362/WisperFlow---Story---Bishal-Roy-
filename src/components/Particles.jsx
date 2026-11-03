@@ -1,7 +1,7 @@
 // Light ambient particles on a canvas: gold motes, embers, petals, fireflies, lantern glow, crystal sparks.
 import { useEffect, useRef } from "react";
 import { BgBox } from "./Stage";
-import { reducedMotion } from "../lib/core";
+import { useMotion } from "../lib/core";
 
 const KINDS = {
   motes: { n: 46, col: ["255,226,150", "255,244,210"], r: [1, 2.6], vy: [-0.25, -0.05], vx: [-0.12, 0.12], glow: 8 },
@@ -15,8 +15,9 @@ const rnd = (a, b) => a + Math.random() * (b - a);
 
 export default function Particles({ kind = "motes", density = 1 }) {
   const ref = useRef(null);
+  const on = useMotion();
   useEffect(() => {
-    const cv = ref.current; if (!cv || reducedMotion()) return;
+    const cv = ref.current; if (!cv || !on) { cv?.getContext("2d").clearRect(0, 0, cv.width, cv.height); return; }
     const K = KINDS[kind] || KINDS.motes, ctx = cv.getContext("2d");
     let W = 0, H = 0, raf, t = 0;
     const fit = () => { W = cv.width = cv.clientWidth; H = cv.height = cv.clientHeight; };
@@ -42,6 +43,6 @@ export default function Particles({ kind = "motes", density = 1 }) {
     };
     raf = requestAnimationFrame(draw);
     return () => { cancelAnimationFrame(raf); ro.disconnect(); };
-  }, [kind, density]);
+  }, [kind, density, on]);
   return <BgBox className="particles"><canvas ref={ref} /></BgBox>;
 }

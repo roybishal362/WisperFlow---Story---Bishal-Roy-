@@ -31,8 +31,8 @@
 .ll-tkw p{font-size:16.5px;line-height:1.3;margin-top:8px;font-style:italic}
 .ll-tkw .stamp{position:absolute;right:9%;bottom:12%;padding:4px 10px;border:3px double #a33a2a;color:#a33a2a;font-family:Cinzel,serif;font-weight:900;letter-spacing:.2em;font-size:15px;transform:rotate(-12deg);border-radius:4px}
 .ll-nav{left:40px;bottom:180px}
-.ll-depot .ll-nav{left:auto;right:50px;bottom:auto;top:380px}
-.stage.portrait .ll-depot .ll-nav{right:auto;left:40px;top:auto;bottom:250px}
+.kind-depot .ll-nav{left:auto;right:50px;bottom:auto;top:380px}
+.stage.portrait .kind-depot .ll-nav{right:auto;left:40px;top:auto;bottom:250px}
 .ll-warm{position:absolute;inset:-300px;background:linear-gradient(180deg,rgba(40,20,10,.2),rgba(20,10,10,.4));pointer-events:none}
 .ll-dregion h1{font-size:32px}
 .ll-dregion p{font-size:13px}

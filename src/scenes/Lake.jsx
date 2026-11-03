@@ -1,5 +1,5 @@
 // The Lake of Mirrors: one painted lake with 8 towers. Each tower: the win, the reflection (what it cost), the gold (how I mended it).
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Living from "../components/Living";
 import Particles from "../components/Particles";
@@ -17,12 +17,13 @@ export default function Lake({ route }) {
   const [zoom, setZoom] = useState(null);
   const [flip, setFlip] = useState(false);
   useEffect(() => { setZoom(null); setFlip(false); }, [sub]);
+  const alive = useRef(true); useEffect(() => () => { alive.current = false; }, []);
 
   const fly = async (j) => {
     if (zoom !== null) return;
     setZoom(j);
     await wait(reducedMotion() ? 0 : 750);
-    go(`/lake/${j + 1}`);
+    if (alive.current && location.hash === "#/lake") go(`/lake/${j + 1}`);
   };
   useEffect(() => {
     const k = (e) => {

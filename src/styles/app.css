@@ -111,3 +111,6 @@ a{color:inherit;text-decoration:none}
 .stage.portrait .sp-acts{bottom:250px;flex-direction:row;flex-wrap:wrap;justify-content:center;width:auto}
 .stage.portrait .sp-acts .btn{padding:10px 16px;font-size:13px}
 .stage.portrait .t-tip{bottom:380px}
+
+/* motion switch off: stop the decorative loops (scene transitions stay short and gentle) */
+.calm .living img.drift,.calm .w-isl img,.calm .w-balloon,.calm .cr-isl,.calm .dlg .next,.calm .ll-sig .lamp{animation:none !important}
