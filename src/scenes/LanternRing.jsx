@@ -5,7 +5,7 @@ import Living from "../components/Living";
 import Particles from "../components/Particles";
 import { BgBox, useStage } from "../components/Stage";
 import { Dialogue, Region, Btn, Toast } from "../components/Ui";
-import { art, go, store, useStore, reducedMotion, wait } from "../lib/core";
+import { art, go, store, useStore, reducedMotion, wait, preload } from "../lib/core";
 import { SHOPS } from "../content";
 import "./LanternRing.css";
 
@@ -30,6 +30,7 @@ function Plaza() {
   const drag = useRef(null), moved = useRef(false), anim = useRef(0);
   useEffect(() => { lastYaw = yaw; }, [yaw]);
   const alive = useRef(true); useEffect(() => () => { alive.current = false; }, []);
+  useEffect(() => { preload(SHOPS.flatMap((s) => [art("05-lantern-ring/bg-in-" + (s.interior || s.id)), art("05-lantern-ring/" + s.itemImg)]), 30000); }, []);
   useEffect(() => () => cancelAnimationFrame(anim.current), []);
 
   const animateYaw = useCallback((to, ms = 550) => new Promise((res) => {

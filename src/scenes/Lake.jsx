@@ -5,7 +5,7 @@ import Living from "../components/Living";
 import Particles from "../components/Particles";
 import { CoverBox } from "../components/Stage";
 import { Dialogue, Region, Btn } from "../components/Ui";
-import { art, go, wait, reducedMotion } from "../lib/core";
+import { art, go, wait, reducedMotion, preload } from "../lib/core";
 import { TOWERS, LAKE_POS } from "../content";
 import "./Lake.css";
 
@@ -18,6 +18,8 @@ export default function Lake({ route }) {
   const [flip, setFlip] = useState(false);
   useEffect(() => { setZoom(null); setFlip(false); }, [sub]);
   const alive = useRef(true); useEffect(() => () => { alive.current = false; }, []);
+  // while you look at the lake, quietly load every tower's own painting, so flying in never shows a blank
+  useEffect(() => { preload(TOWERS.map((_, j) => art(`04-lake-of-mirrors/bg-tower-close-${j + 1}`)), 30000); }, []);
 
   const fly = async (j) => {
     if (zoom !== null) return;

@@ -17,14 +17,15 @@ const ALL = ["world", "city", "line", "lake", "ring", "crafters", "echo", "skypo
 // default part lengths (seconds) and cue points, used until the real voice timing exists
 const PARTS = {
   1: { dur: 15, start: "/", cues: { enter: 10.5 } },
-  2: { dur: 18, start: "/world", cues: { turn1: 1.5, turn2: 4.5, travel: 10 } },
-  3: { dur: 27, start: "/line/leg1", cues: { depot: 8, rollout: 16, sky: 22 } },
-  4: { dur: 25, start: "/lake", cues: { tower: 8, mirror: 13 } },
-  5: { dur: 21, start: "/ring", cues: { turn: 1.5, enter: 4.5, bag: 9, next: 15 } },
-  6: { dur: 13, start: "/crafters", cues: { forge: 3, strike: 8, strike2: 11 } },
-  7: { dur: 26, start: "/echo", cues: { crystal1: 9, crystal2: 15, speak: 21 } },
-  8: { dur: 19, start: "/skyport", cues: { plan1: 9, plan2: 14 } },
-  9: { dur: 13, start: "/skyport/council", cues: { depart: 6 } },
+  2: { dur: 13, start: "/world", cues: { turn1: 1.5, turn2: 4.5, travel: 8 } },
+  3: { dur: 24, start: "/line/leg1", cues: { depot: 6, rollout: 13, sky: 16 } },
+  4: { dur: 34, start: "/lake", cues: { tower: 12, mirror: 16, lakeflip: 29 } },
+  5: { dur: 24, start: "/ring", cues: { turn: 1.5, enter: 4.5, bag: 8, next: 13, plaza: 17, spin1: 18.3, spin2: 19.2, spin3: 20.1 } },
+  6: { dur: 26, start: "/crafters", cues: { w1: 8, w2: 10, w3: 12, w4: 14, w5: 16, forge: 21, strike: 22.5, strike2: 25 } },
+  7: { dur: 21, start: "/world", cues: { turn: 1, turn2: 4, travel: 9, crown: 17 } },
+  8: { dur: 18, start: "/echo", cues: { crystal1: 8, speak: 13 } },
+  9: { dur: 38, start: "/skyport", cues: { plan1: 15, plan2: 22, plan3: 29 } },
+  10: { dur: 12, start: "/skyport/council", cues: { depart: 6 } },
 };
 
 const browser = await puppeteer.launch({
@@ -44,21 +45,26 @@ const click = (text) => page.evaluate((t) => [...document.querySelectorAll("butt
 const clickSel = (sel, i = 0) => page.evaluate((s, i) => document.querySelectorAll(s)[i]?.click(), sel, i);
 
 // warm every realm's paintings so nothing pops in on camera
-for (const h of ["/world", "/city", "/line/leg1", "/line/depot2", "/line/leg3", "/line/leg5", "/lake", "/lake/2", "/ring", "/ring/oracle", "/ring/apothecary", "/crafters", "/crafters/forge", "/echo", "/skyport", "/skyport/plan/1", "/skyport/plan/2", "/skyport/plan/3", "/skyport/council", "/skyport/end"]) { await hash(h); await sleep(2600); }
+for (const h of ["/lake/1", "/lake/3", "/lake/4", "/lake/5", "/lake/6", "/lake/7", "/lake/8", "/crafters/alchemist", "/crafters/witches", "/crafters/elves", "/crafters/bards", "/city/7", "/world", "/city", "/line/leg1", "/line/depot2", "/line/leg3", "/line/leg5", "/lake", "/lake/2", "/ring", "/ring/oracle", "/ring/apothecary", "/crafters", "/crafters/forge", "/echo", "/skyport", "/skyport/plan/1", "/skyport/plan/2", "/skyport/plan/3", "/skyport/council", "/skyport/end"]) { await hash(h); await sleep(2600); }
 
 const ACTIONS = {
   1: { enter: () => click("ENTER THE REALM") },
   2: { turn1: () => page.keyboard.press("ArrowRight"), turn2: () => page.keyboard.press("ArrowRight"),
        travel: () => page.evaluate(() => [...document.querySelectorAll(".w-hit")].find((b) => b.getAttribute("aria-label").includes("Long Line"))?.click()) },
   3: { depot: () => hash("/line/depot2"), rollout: () => click("ROLL OUT"), sky: () => hash("/line/leg5") },
-  4: { tower: () => clickSel(".lk-tw", 1), mirror: () => click("TURN THE MIRROR") },
+  4: { tower: () => clickSel(".lk-tw", 2), mirror: () => click("TURN THE MIRROR"), lakeflip: () => hash("/lake/mirror") },
   5: { turn: () => page.evaluate(() => [...document.querySelectorAll(".lr-shop button")].find((b) => b.getAttribute("aria-label").includes("Oracle"))?.click()),
-       enter: () => click("ENTER THE ORACLE"), bag: () => click("ADD TO BAG"), next: () => click("NEXT SHOP") },
-  6: { forge: () => page.evaluate(() => [...document.querySelectorAll(".cr-door")].find((b) => b.textContent.includes("Forge"))?.click()),
+       enter: () => click("ENTER THE ORACLE"), bag: () => click("ADD TO BAG"), next: () => click("NEXT SHOP"),
+       plaza: () => hash("/ring"), spin1: () => page.keyboard.press("ArrowRight"), spin2: () => page.keyboard.press("ArrowRight"), spin3: () => page.keyboard.press("ArrowRight") },
+  6: { w1: () => hash("/crafters/forge"), w2: () => hash("/crafters/alchemist"), w3: () => hash("/crafters/witches"), w4: () => hash("/crafters/elves"), w5: () => hash("/crafters/bards"),
+       forge: () => hash("/crafters/forge"),
        strike: () => click("STRIKE THE ANVIL"), strike2: () => click("STRIKE THE ANVIL") },
-  7: { crystal1: () => clickSel(".ec-list button", 0), crystal2: () => clickSel(".ec-list button", 1), speak: () => click("the skyport") },
-  8: { plan1: () => clickSel(".sp-route", 0), plan2: () => hash("/skyport/plan/3") },
-  9: { depart: () => hash("/skyport/end") },
+  7: { turn: () => page.keyboard.press("ArrowRight"), turn2: () => page.keyboard.press("ArrowRight"),
+       travel: () => page.evaluate(() => [...document.querySelectorAll(".w-hit")].find((b) => b.getAttribute("aria-label").includes("Vast City"))?.click()),
+       crown: () => hash("/city/7") },
+  8: { crystal1: () => clickSel(".ec-list button", 0), speak: () => click("the skyport") },
+  9: { plan1: () => clickSel(".sp-route", 0), plan2: () => hash("/skyport/plan/2"), plan3: () => hash("/skyport/plan/3") },
+  10: { depart: () => hash("/skyport/end") },
 };
 
 for (const [n, def] of Object.entries(PARTS)) {

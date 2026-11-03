@@ -39,7 +39,7 @@ words = [{"w": w.word.strip(), "s": w.start, "e": w.end} for s in segs for w in 
 open(os.path.join(OUT, NAME + "-transcript.txt"), "w", encoding="utf-8").write(" ".join(f"[{w['s']:.1f}]{w['w']}" for w in words))
 
 # ---------- 2. split on the spoken "Part N" markers ----------
-NUM = {"one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9, **{str(i): i for i in range(1, 10)}}
+NUM = {"one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10, **{str(i): i for i in range(1, 11)}}
 norm = lambda t: re.sub(r"[^a-z0-9]", "", t.lower())
 marks = []
 for i, w in enumerate(words[:-1]):
@@ -61,7 +61,7 @@ for k, n in enumerate(order):
 
 import difflib
 md = open(os.path.join(VID, "VIDEO-SCRIPT.md"), encoding="utf-8").read()
-SCRIPT = [re.sub(r"[*]", "", t) for t in re.findall(r"^> (.+)$", md, flags=re.M)][:9]
+SCRIPT = [re.sub(r"[*]", "", t) for t in re.findall(r"^> (.+)$", md, flags=re.M)][:10]
 def aligned(n, heard):
     """Script words for part n, each with a time taken from the matching heard word (or interpolated)."""
     if n - 1 >= len(SCRIPT): return heard
@@ -81,17 +81,18 @@ def aligned(n, heard):
         step = (e0 - s0) / (len(span) + 1); t[i] = (s0 + step * (span.index(i) + 0.5), s0 + step * (span.index(i) + 1))
     return [{"w": sw[i], "s": t[i][0], "e": t[i][1]} for i in range(len(sw))]
 # ---------- cue times from keywords (seconds into the part's voice) ----------
-CUES = {1: {"enter": ("world", 1)}, 2: {"turn1": ("straight", 1), "turn2": ("island", 1), "travel": ("explore", 1)},
-        3: {"depot": ("depot", 1), "sky": ("until", 1)}, 4: {"tower": ("mirror", 1), "mirror": ("turn", 1)},
-        5: {"turn": ("spins", 1), "enter": ("shop", 1), "bag": ("numbers", 1), "next": ("stripsense", 1)},
-        6: {"forge": ("every", 1), "strike": ("strike", 1), "strike2": ("stage", 3)},
-        7: {"crystal1": ("scene", 1), "crystal2": ("feedback", 1), "speak": ("typing", 1)},
-        8: {"plan1": ("gap", 1), "plan2": ("creators", 1)}, 9: {"depart": ("next", 1)}}
-LEAD = 0.5   # seconds of picture before each part's voice starts
+CUES = {1: {"enter": ("so", 1)}, 2: {"turn1": ("journey", 1), "turn2": ("island", 1), "travel": ("balloon", 1)},
+        3: {"depot": ("depot", 1), "sky": ("until", 1)}, 4: {"tower": ("fly", 1), "mirror": ("turn", 1), "lakeflip": ("neither", 1)},
+        5: {"turn": ("spins", 1), "enter": ("oracles", 1), "bag": ("achieved", 1), "next": ("public", 1), "plaza": ("eleven", 1)},
+        6: {"w1": ("dwarves", 1), "w2": ("alchemists", 1), "w3": ("witches", 1), "w4": ("elves", 1), "w5": ("bards", 1), "forge": ("every", 1), "strike": ("strike", 1), "strike2": ("use", 1)},
+        7: {"turn": ("heart", 1), "turn2": ("bridge", 1), "travel": ("journey", 1), "crown": ("crown", 1)},
+        8: {"crystal1": ("speak", 1), "speak": ("crystal", 1)},
+        9: {"plan1": ("ghar", 1), "plan2": ("campus", 1), "plan3": ("bolo", 1)}, 10: {"depart": ("next", 1)}}
+LEAD = 0.4   # seconds of picture before each part's voice starts
 timing = {}
 for n, p in parts.items():
     voice_len = p["end"] - p["start"]
-    dur = round(LEAD + voice_len + 0.9, 2)
+    dur = round(LEAD + voice_len + 0.7, 2)
     cues = {}
     aw = aligned(n, p["words"])           # script words with times, robust to misheard words
     for cue, (word, nth) in CUES.get(n, {}).items():
@@ -100,11 +101,15 @@ for n, p in parts.items():
     if n == 3 and "sky" in cues:   # the engine change (about 3 s) lands on "rebuilt the engine"; the sky-train lifts off on "until ... the ground"
         cues["rollout"] = round(max(cues.get("depot", 0) + 1.5, cues["sky"] - 3.0), 2)
         dur = max(dur, round(cues["sky"] + 3.4, 2))
-    if n == 7: cues["speak"] = round(max(cues.get("crystal2", 0) + 1.0, dur - 4.4), 2)
-    if n == 8: dur = max(dur, cues.get("plan2", 0) + 3.0)
+    if n == 8:   # the cave hears "the Skyport" after the crystal line, lights up and carries us on
+        cues["speak"] = round(max(cues.get("crystal1", 0) + 2.0, cues.get("speak", 0)), 2); dur = max(dur, round(cues["speak"] + 3.4, 2))
+    if n == 9: dur = max(dur, round(cues.get("plan3", 0) + 3.0, 2))
+    if n == 4 and "lakeflip" in cues: dur = max(dur, round(cues["lakeflip"] + 2.6, 2))
+    if n == 7: dur = max(dur, cues.get("crown", 0) + 2.4)
     if n == 4 and "tower" in cues and "mirror" in cues: cues["mirror"] = max(cues["mirror"], round(cues["tower"] + 2.6, 2))
     if n == 6 and "forge" in cues and "strike" in cues: cues["strike"] = max(cues["strike"], round(cues["forge"] + 1.4, 2))
-    if n == 5 and "turn" in cues and "enter" in cues: cues["enter"] = max(cues["enter"], round(cues["turn"] + 1.2, 2))   # say "the skyport": the cave lights up and carries us on
+    if n == 5 and "turn" in cues and "enter" in cues: cues["enter"] = max(cues["enter"], round(cues["turn"] + 1.2, 2))
+    if n == 5 and "plaza" in cues: cues["spin1"] = round(cues["plaza"] + 1.3, 2); cues["spin2"] = round(cues["plaza"] + 2.2, 2); cues["spin3"] = round(cues["plaza"] + 3.1, 2); dur = max(dur, cues["spin3"] + 1.2)   # say "the skyport": the cave lights up and carries us on
     if n == 1 and "enter" in cues: dur = max(dur, cues["enter"] + 1.2)
     timing[str(n)] = {"dur": dur, "cues": cues, "voice": [p["start"], p["end"]]}
 json.dump(timing, open(os.path.join(WORK, "timing.json"), "w"), indent=1)
@@ -127,7 +132,7 @@ inputs, filt, t_offsets = [], [], []
 for k, n in enumerate(seq):
     inputs += ["-i", os.path.join(CLIPS, f"part{n}.webm")]
     filt.append(f"[{k}:v]trim=0:{timing[n]['dur']},setpts=PTS-STARTPTS,fps=30,format=yuv420p,setsar=1[v{k}]")
-inputs += ["-loop", "1", "-t", "5", "-i", end_png]
+inputs += ["-loop", "1", "-t", "4.5", "-i", end_png]
 ke = len(seq)
 filt.append(f"[{ke}:v]fps=30,format=yuv420p,setsar=1,fade=t=in:st=0:d=0.6[v{ke}]")
 # chain cross-fades
@@ -138,7 +143,7 @@ for k in range(1, ke + 1):
     t_offsets.append(off)
     filt.append(f"[{cur}][v{k}]xfade=transition=fade:duration={XF}:offset={off:.3f}[x{k}]")
     cur = f"x{k}"
-    t = off + (timing[seq[k]]["dur"] if k < ke else 5)
+    t = off + (timing[seq[k]]["dur"] if k < ke else 4.5)
 total = t
 # voice: each part's audio placed at its clip start + LEAD
 ai = ke + 1

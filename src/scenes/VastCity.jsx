@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Living from "../components/Living";
 import Particles from "../components/Particles";
 import { Dialogue, Region, Btn, enter } from "../components/Ui";
-import { art, go, useStore } from "../lib/core";
+import { art, go, useStore, preload } from "../lib/core";
 import { RINGS, REALMS, PERSON } from "../content";
 import "./VastCity.css";
 
@@ -16,6 +16,7 @@ export default function VastCity({ route }) {
   const n = Number(route.sub[0]);
   const i = n >= 1 && n <= 7 ? n - 1 : -1;
   const prev = useRef(i); const dir = i > prev.current ? 1 : -1; useEffect(() => { prev.current = i; }, [i]);
+  useEffect(() => { preload(RINGS.map((r) => art("02-vast-city/" + r.art)), 30000); }, []);
 
   useEffect(() => {
     const k = (e) => {

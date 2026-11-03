@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Living from "../components/Living";
 import Particles from "../components/Particles";
 import { Dialogue, Region, Btn, Toast } from "../components/Ui";
-import { art, go, store, useStore, wait, reducedMotion } from "../lib/core";
+import { art, go, store, useStore, wait, reducedMotion, preload } from "../lib/core";
 import { useStage } from "../components/Stage";
 import { WORKSHOPS } from "../content";
 import "./Crafters.css";
@@ -19,6 +19,7 @@ export default function Crafters({ route }) {
 
 function Hub() {
   const { stages } = useStore();
+  useEffect(() => { preload(WORKSHOPS.map((w) => art("06-crafters-quarter/" + w.art)), 30000); }, []);
   const { portrait } = useStage();
   const spots = portrait ? DOORS_P : DOORS;
   return (
