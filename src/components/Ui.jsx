@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { roy, reducedMotion } from "../lib/core";
+import { talk, useTalk } from "../lib/talk";
 
 export function Dialogue({ expr = "happy", text, children, className = "" }) {
   const [shown, setShown] = useState(0);
@@ -15,12 +16,14 @@ export function Dialogue({ expr = "happy", text, children, className = "" }) {
     return () => clearInterval(timer.current);
   }, [plain]);
   const done = shown >= plain.length;
+  const chat = useTalk();
   return (
     <motion.div className={"dlg " + className} style={{ x: "-50%" }} initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45, delay: 0.15 }}
       onClick={() => setShown(plain.length)}>
       <div className="por" style={{ backgroundImage: `url(${roy(expr)})` }} />
       <div className="box">
         <div className="name">ROY</div>
+        {chat.ready && !chat.open && <button type="button" className="ask" onClick={(e) => { e.stopPropagation(); talk.open(); }}>💬 Ask me anything</button>}
         <div className="txt" aria-live="polite">{plain.slice(0, shown)}<span className="ghost">{plain.slice(shown)}</span></div>
         {children && done && <div className="dlg-act">{children}</div>}
         <div className="next">{done ? "◆" : "▼"}</div>

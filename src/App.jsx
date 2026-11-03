@@ -5,7 +5,8 @@ import { Btn } from "./components/Ui";
 import { useRoute, go, preload, art, store, useStore, wait, motion as motionSwitch, useMotion } from "./lib/core";
 import { REALMS, SIXTY, PERSON, INTRO, MUSIC } from "./content";
 import { music, useMusic } from "./lib/music";
-import TalkToRoy, { royReady } from "./components/TalkToRoy";
+import TalkToRoy from "./components/TalkToRoy";
+import { talk, useTalk } from "./lib/talk";
 import { PRELOAD } from "./lib/preloads";
 import Title from "./scenes/Title";
 import World from "./scenes/World";
@@ -59,7 +60,7 @@ function Hud({ onSixty, realm, onIntro, onTalk }) {
         <div className="who"><b>THE VAST REALM</b><span>Bishal Roy · a world spoken into being</span></div>
       </button>
       <div className="hud-tr">
-        {onTalk && <button type="button" className="pillh talk" onClick={onTalk} title="Talk to Roy">💬 <span className="full">Talk to Roy</span></button>}
+        {onTalk && <button type="button" className="pillh talk" onClick={onTalk} title="Talk to Roy: ask me anything">💬 <span className="full">Talk to Roy</span></button>}
         <button type="button" className="pillh" onClick={onSixty}>◷ <span className="full">60-second version</span><span className="short">60s</span></button>
         <div className="pillh" title="Realms explored">◈ {n} / {REALM_IDS.length}</div>
         {INTRO[realm] && <button type="button" className="ico" onClick={onIntro} aria-label="What is this place?" title="What is this place?">?</button>}
@@ -163,9 +164,7 @@ export default function App() {
   const [wipe, setWipe] = useState(null);
   const [sixty, setSixty] = useState(false);
   const [intro, setIntro] = useState(null);
-  const [talk, setTalk] = useState(false);
-  const [royOn, setRoyOn] = useState(false);
-  useEffect(() => { royReady().then(setRoyOn); }, []);
+  const chat = useTalk();
   const { seen = [] } = useStore();
   const seq = useRef(0);
 
@@ -213,11 +212,11 @@ export default function App() {
           <Scene route={shown} busy={!!wipe} onSixty={() => setSixty(true)} />
         </motion.div>
       </AnimatePresence>
-      {shown.realm !== "title" && <Hud onSixty={() => setSixty(true)} realm={shown.realm} onIntro={() => setIntro(shown.realm)} onTalk={royOn ? () => setTalk(true) : null} />}
+      {shown.realm !== "title" && <Hud onSixty={() => setSixty(true)} realm={shown.realm} onIntro={() => setIntro(shown.realm)} onTalk={chat.ready ? talk.open : null} />}
       <CloudWipe wipe={wipe} />
       <AnimatePresence>{intro && !wipe && <Intro key={intro} id={intro} onClose={closeIntro} />}</AnimatePresence>
       <AnimatePresence>{sixty && <Sixty onClose={() => setSixty(false)} />}</AnimatePresence>
-      <AnimatePresence>{talk && shown.realm !== "title" && <TalkToRoy key="talk" onClose={() => setTalk(false)} />}</AnimatePresence>
+      <AnimatePresence>{chat.open && shown.realm !== "title" && <TalkToRoy key="talk" onClose={talk.close} />}</AnimatePresence>
     </Stage>
   );
 }

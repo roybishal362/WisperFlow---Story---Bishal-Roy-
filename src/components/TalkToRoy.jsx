@@ -1,22 +1,26 @@
-// Talk to Roy: chat with Bishal's tiny guide. An AI answers on the server (api/roy.js), using only the facts in this world.
-// Visitors can type or, in Chrome and Edge, hold the mic and speak. Roy can point to a realm with a [[realm]] link.
+// Talk to Roy: Roy's dialogue box grows into a conversation. An AI answers on the server (api/roy.js),
+// using only the facts in this world. Visitors can type or, in Chrome and Edge, tap the mic and speak.
+// Roy can point to a realm with a [[realm]] link, which becomes a gold "Take me there" button.
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { art, go } from "../lib/core";
+import { go, roy } from "../lib/core";
 import { music } from "../lib/music";
+import { Btn } from "./Ui";
 import { REALMS, ROYCHAT } from "../content";
 
 const SR = typeof window !== "undefined" ? window.SpeechRecognition || window.webkitSpeechRecognition : null;
 const PLACES = { world: { name: "the world map", route: "/world" }, ...Object.fromEntries(REALMS.map((r) => [r.id, { name: r.name, route: r.route }])) };
 
-let readyCheck = null;   // asked once per visit: is the AI switched on?
-export const royReady = () => (readyCheck ||= fetch("/api/roy").then((r) => (r.ok ? r.json() : { ready: false })).then((j) => !!j.ready).catch(() => false));
-
-function Reply({ text, onGo }) {
-  const parts = text.split(/\[\[(\w+)\]\]/);
-  return parts.map((p, i) => (i % 2
-    ? PLACES[p] && <button key={i} type="button" className="tr-go" onClick={() => onGo(PLACES[p].route)}>Take me to {PLACES[p].name} ›</button>
-    : <span key={i}>{p.trim()}</span>));
+function Line({ m, onGo }) {
+  if (m.role === "user") return <div className="tr-ln you"><b>YOU</b><p>{m.text}</p></div>;
+  const parts = m.text.split(/\[\[(\w+)\]\]/);
+  const words = parts.filter((_, i) => i % 2 === 0).join(" ").replace(/\s+\n/g, "\n").trim();
+  const place = parts.filter((p, i) => i % 2 && PLACES[p]).map((p) => PLACES[p])[0];
+  return (
+    <div className="tr-ln roy"><b>ROY</b><p>{words}</p>
+      {place && <Btn className="tr-go" onClick={() => onGo(place.route)}>✦ Take me to {place.name}</Btn>}
+    </div>
+  );
 }
 
 export default function TalkToRoy({ onClose }) {
@@ -63,30 +67,29 @@ export default function TalkToRoy({ onClose }) {
     } catch { music.duck(false); setListening(false); }
   }
   const travel = (route) => { onClose(); go(route); };
+  const face = listening ? "surprised" : busy ? "thinking" : "happy";
 
   return (
-    <motion.div className="panel tr" role="dialog" aria-label="Talk to Roy" initial={{ opacity: 0, y: 16, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 12 }} transition={{ duration: 0.22 }}>
-      <div className="tr-top">
-        <i style={{ backgroundImage: `url(${art("00-roy-and-ui/roy-happy")})` }} />
-        <div><div className="ptitle">Talk to Roy</div><span>{ROYCHAT.sub}</span></div>
-        <button type="button" className="tr-x" onClick={onClose} aria-label="Close the chat">✕</button>
+    <motion.div className="tr" role="dialog" aria-label="Talk to Roy" style={{ x: "-50%" }}
+      initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 24 }} transition={{ duration: 0.3, ease: "easeOut" }}>
+      <div className="tr-box">
+        <div className="name">ROY</div>
+        <div className="tr-head">TALK TO ROY <span>· {ROYCHAT.sub}</span></div>
+        <button type="button" className="tr-x" onClick={onClose} aria-label="Close the conversation">✕</button>
+        <div className="tr-list" ref={list}>
+          {msgs.map((m, i) => <Line key={i} m={m} onGo={travel} />)}
+          {busy && <div className="tr-ln roy"><b>ROY</b><p className="tr-dots"><i>◆</i><i>◆</i><i>◆</i></p></div>}
+          {msgs.length === 1 && <div className="tr-chips">{ROYCHAT.chips.map((c) => <button key={c} type="button" onClick={() => ask(c)}>{c}</button>)}</div>}
+        </div>
+        <form className="tr-in" onSubmit={(e) => { e.preventDefault(); ask(text); }}>
+          {SR && <button type="button" className={"ico tr-mic" + (listening ? " on" : "")} onClick={listen} aria-label="Speak your question" title="Speak your question">🎙</button>}
+          <input ref={input} value={text} maxLength={600} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => e.stopPropagation()}
+            placeholder={listening ? "Listening… speak now" : "Ask me anything about my story…"} aria-label="Your question" />
+          <button type="submit" className="btn tr-send" disabled={!text.trim() || busy}>ASK ›</button>
+        </form>
+        <div className="tr-note">{ROYCHAT.note}</div>
       </div>
-      <div className="tr-list" ref={list}>
-        {msgs.map((m, i) => (
-          <div key={i} className={"tr-m " + m.role}>{m.role === "roy" ? <Reply text={m.text} onGo={travel} /> : m.text}</div>
-        ))}
-        {busy && <div className="tr-m roy tr-typing"><b /><b /><b /></div>}
-        {msgs.length === 1 && (
-          <div className="tr-chips">{ROYCHAT.chips.map((c) => <button key={c} type="button" onClick={() => ask(c)}>{c}</button>)}</div>
-        )}
-      </div>
-      <form className="tr-in" onSubmit={(e) => { e.preventDefault(); ask(text); }}>
-        {SR && <button type="button" className={"tr-mic" + (listening ? " on" : "")} onClick={listen} aria-label="Speak your question" title="Speak your question">🎙</button>}
-        <input ref={input} value={text} maxLength={600} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => e.stopPropagation()}
-          placeholder={listening ? "Listening…" : "Ask me anything…"} aria-label="Your question" />
-        <button type="submit" className="tr-send" disabled={!text.trim() || busy} aria-label="Send">➤</button>
-      </form>
-      <div className="tr-note">{ROYCHAT.note}</div>
+      <div className="tr-por" style={{ backgroundImage: `url(${roy(face)})` }} />
     </motion.div>
   );
 }
