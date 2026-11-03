@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import Stage, { useStage } from "./components/Stage";
 import { Btn } from "./components/Ui";
 import { useRoute, go, preload, art, store, useStore, wait, motion as motionSwitch, useMotion } from "./lib/core";
-import { REALMS, SIXTY, PERSON, INTRO } from "./content";
+import { REALMS, SIXTY, PERSON, INTRO, MUSIC } from "./content";
+import { music, useMusic } from "./lib/music";
 import { PRELOAD } from "./lib/preloads";
 import Title from "./scenes/Title";
 import World from "./scenes/World";
@@ -60,6 +61,7 @@ function Hud({ onSixty, realm, onIntro }) {
         <button type="button" className="pillh" onClick={onSixty}>◷ 60-second version</button>
         <div className="pillh" title="Realms explored">◈ {n} / {REALM_IDS.length}</div>
         {INTRO[realm] && <button type="button" className="ico" onClick={onIntro} aria-label="What is this place?" title="What is this place?">?</button>}
+        <MusicBtn />
         <MotionBtn />
         {realm !== "world" && <button type="button" className="ico" onClick={() => go("/world")} aria-label="World map" title="World map">🗺</button>}
       </div>
@@ -85,6 +87,43 @@ function Intro({ id, onClose }) {
         <div className="b"><Btn onClick={onClose} autoFocus>✦ EXPLORE</Btn></div>
       </motion.div>
     </motion.div>
+  );
+}
+
+function MusicBtn() {
+  const { playing, idx } = useMusic();
+  const [open, setOpen] = useState(false);
+  const box = useRef(null);
+  useEffect(() => {
+    if (!open) return;
+    const off = (e) => { if (!box.current?.contains(e.target)) setOpen(false); };
+    const esc = (e) => { if (e.key === "Escape") { e.stopPropagation(); setOpen(false); } };
+    window.addEventListener("pointerdown", off); window.addEventListener("keydown", esc, true);
+    return () => { window.removeEventListener("pointerdown", off); window.removeEventListener("keydown", esc, true); };
+  }, [open]);
+  const t = MUSIC.tracks[idx];
+  return (
+    <div className="mus" ref={box}>
+      <button type="button" className={"ico" + (playing ? " playing" : "")} onClick={() => setOpen(!open)} aria-expanded={open}
+        aria-label="Music" title={playing ? `Music: ${t.title}` : "Music (off)"}>{playing ? "♫" : "♪"}</button>
+      <AnimatePresence>
+        {open && (
+          <motion.div className="panel mus-p" initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.18 }}>
+            <div className="ptitle">Music</div>
+            <div className="now">{playing ? "Now playing" : "Paused"} · <b>{t.title}</b></div>
+            <div className="ctl">
+              <button type="button" onClick={music.prev} aria-label="Previous track">⏮</button>
+              <button type="button" className="pp" onClick={music.toggle} aria-label={playing ? "Pause the music" : "Play the music"}>{playing ? "❚❚" : "▶"}</button>
+              <button type="button" onClick={music.next} aria-label="Next track">⏭</button>
+            </div>
+            <ol>{MUSIC.tracks.map((x, i) => (
+              <li key={x.file}><button type="button" className={i === idx ? "on" : ""} onClick={() => music.pick(i)}>{x.title}</button></li>
+            ))}</ol>
+            <div className="cr">{MUSIC.credit} <a href={MUSIC.license} target="_blank" rel="noreferrer">CC BY 4.0</a></div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
 

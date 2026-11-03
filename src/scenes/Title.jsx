@@ -5,6 +5,7 @@ import Particles from "../components/Particles";
 import { Btn } from "../components/Ui";
 import { art, go, preload, roy } from "../lib/core";
 import { TITLE } from "../content";
+import { music } from "../lib/music";
 import { PRELOAD } from "../lib/preloads";
 import "./Title.css";
 
@@ -19,7 +20,7 @@ export default function Title({ onSixty }) {
   }, []);
   const ready = pct >= 100;
   useEffect(() => {
-    const f = (e) => { if (ready && (e.key === "Enter" || e.key === " ")) go("/world"); };
+    const f = (e) => { if (ready && (e.key === "Enter" || e.key === " ")) { music.start(); go("/world"); } };
     window.addEventListener("keydown", f); return () => window.removeEventListener("keydown", f);
   }, [ready]);
   return (
@@ -40,7 +41,7 @@ export default function Title({ onSixty }) {
       <motion.div className="t-load" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.9 }}>
         {ready ? (
           <div className="t-btns">
-            <Btn onClick={() => go("/world")} autoFocus>✦ ENTER THE REALM</Btn>
+            <Btn onClick={() => { music.start(); go("/world"); }} autoFocus>✦ ENTER THE REALM</Btn>
             <Btn dark onClick={onSixty}>◷ 60-second version</Btn>
           </div>
         ) : (

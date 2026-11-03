@@ -267,3 +267,17 @@ export const INTRO = {
   skyport: { title: "The Wispr Skyport", what: "The top of the world, and where my journey goes next: my plan for growing Wispr Flow in India, and my first 30 days.",
     how: ["Open a flight plan to read the full idea", "Board the airship for the Council Chamber"] },
 };
+
+// Background music (the ♪ button in the top bar). CC BY 4.0: the credit must stay visible.
+export const MUSIC = {
+  credit: "Music by Kevin MacLeod (incompetech.com), licensed under Creative Commons: By Attribution 4.0.",
+  license: "https://creativecommons.org/licenses/by/4.0/",
+  tracks: [
+    { title: "Enchanted Valley", file: "enchanted-valley.mp3" },
+    { title: "Celtic Impulse", file: "celtic-impulse.mp3" },
+    { title: "Village Consort", file: "village-consort.mp3" },
+    { title: "Teller of the Tales", file: "teller-of-the-tales.mp3" },
+    { title: "Skye Cuillin", file: "skye-cuillin.mp3" },
+    { title: "Lord of the Land", file: "lord-of-the-land.mp3" },
+  ],
+};

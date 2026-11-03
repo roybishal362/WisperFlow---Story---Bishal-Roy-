@@ -1,6 +1,7 @@
 // The Echo Caves: proof of voice. Crystals hold sentences Bishal really dictated (via Wispr Flow) while building this world.
 // Visitors can speak too: say a realm's name and the cave lights up and sends you there.
 import { useEffect, useRef, useState } from "react";
+import { music } from "../lib/music";
 import { motion, AnimatePresence } from "framer-motion";
 import Living from "../components/Living";
 import Particles from "../components/Particles";
@@ -22,7 +23,7 @@ export default function Echo() {
   const [listening, setListening] = useState(false);
   const [sel, setSel] = useState(2);
   const rec = useRef(null), alive = useRef(true);
-  useEffect(() => () => { alive.current = false; try { rec.current?.abort(); } catch { /* not running */ } }, []);
+  useEffect(() => () => { alive.current = false; music.duck(false); try { rec.current?.abort(); } catch { /* not running */ } }, []);
 
   const answer = async (text) => {
     setHeard(text); setLit(true);
@@ -37,10 +38,10 @@ export default function Echo() {
       const r = new SR(); rec.current = r;
       r.lang = "en-IN"; r.interimResults = false; r.maxAlternatives = 1;
       r.onresult = (e) => { const t = e.results?.[0]?.[0]?.transcript || ""; if (t) answer(t); };
-      r.onend = () => alive.current && setListening(false);
-      r.onerror = () => alive.current && setListening(false);
-      r.start(); setListening(true); setHeard(null);
-    } catch { setListening(false); }
+      r.onend = () => { music.duck(false); if (alive.current) setListening(false); };
+      r.onerror = () => { music.duck(false); if (alive.current) setListening(false); };
+      music.duck(true); r.start(); setListening(true); setHeard(null);
+    } catch { music.duck(false); setListening(false); }
   };
   const stop = () => { try { rec.current?.stop(); } catch { /* already stopped */ } };
   const stats = ECHO.stats.filter((s) => s.v);

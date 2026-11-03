@@ -185,6 +185,7 @@ Three flight plans for Wispr Flow India (**Ghar ka Flow**, **Campus Flow**, **Bo
 - **A hand-rolled 360° ring** drives both the world map and the shop plaza: drag with momentum, snap to the nearest slot, depth sorting, and bridges that follow each island as it turns.
 - **Living paintings.** The backgrounds drift slowly, lean with the pointer, and carry particles (embers, petals, fireflies, lanterns, crystal sparks).
 - **Transitions:** cloud wipes that preload the next realm while they cover the screen, the balloon flight, the depot engine change, the lake fly-in, a light bloom when you enter a shop, and a forge flash with a logo burst.
+- **A game soundtrack.** Six fantasy tracks play in order and loop, starting softly with your first click into the world (browsers block sound before that). The ♪ button in the top bar pauses, skips or picks a track; the choice is remembered, and the music dips while the Echo Caves listen to your voice.
 - **Content as data.** Every word on the site lives in one file, [`src/content.js`](src/content.js).
 - **Progress is remembered** (`localStorage`): realms visited, your bag of item cards, the stage of every workshop.
 - **Every realm explains itself.** A welcome card on first entry (what it is, how to explore), a ? button to reopen it, and a plain-words description for every project and workshop.
@@ -242,6 +243,7 @@ Deploying: import the repo into Vercel (Vite is detected automatically; the buil
 ## Credits
 
 - **Art:** generated with Google Gemini and FLUX.2 (Cloudflare Workers AI), then reviewed and composited by me.
+- **Music:** six tracks by Kevin MacLeod ([incompetech.com](https://incompetech.com)), licensed under [Creative Commons: By Attribution 4.0](https://creativecommons.org/licenses/by/4.0/): *Enchanted Valley*, *Celtic Impulse*, *Village Consort*, *Teller of the Tales*, *Skye Cuillin* and *Lord of the Land*. Volume-matched and re-encoded for the web.
 - **Tool logos:** [Simple Icons](https://simpleicons.org) (CC0).
 - **Fonts:** Cinzel, Cinzel Decorative, Nunito and Cormorant Garamond (Google Fonts, OFL).
 - **Market data:** the Skyport cites TechCrunch, 9 May 2026.

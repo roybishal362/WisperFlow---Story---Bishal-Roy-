@@ -36,7 +36,7 @@ const page = await browser.newPage();
 await page.setViewport({ width: 1920, height: 1080, deviceScaleFactor: 1 });
 await page.goto(base + "/#/", { waitUntil: "networkidle0" });
 // clean state, intros already seen (the video shows the realms, not the welcome cards)
-await page.evaluate((all) => { localStorage.setItem("vast-realm-v1", JSON.stringify({ visited: [], bag: [], stages: {}, crystals: [], seen: all })); localStorage.setItem("vast-realm-motion", "on"); }, ALL);
+await page.evaluate((all) => { localStorage.setItem("vast-realm-v1", JSON.stringify({ visited: [], bag: [], stages: {}, crystals: [], seen: all })); localStorage.setItem("vast-realm-motion", "on"); localStorage.setItem("vast-realm-music", "off"); }, ALL);
 await page.reload({ waitUntil: "networkidle0" });
 const hideDialogue = () => page.addStyleTag({ content: ".dlg{display:none !important}" });
 await hideDialogue();

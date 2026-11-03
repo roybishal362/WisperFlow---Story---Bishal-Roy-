@@ -32,7 +32,10 @@ await page.goto(base + "/#/", { waitUntil: "networkidle0" });
 await page.evaluate(() => localStorage.setItem("vast-realm-v1", JSON.stringify({ visited: [], bag: [], stages: {}, crystals: [], seen: ["city", "line", "lake", "ring", "crafters", "echo", "skyport"] })));
 await page.reload({ waitUntil: "networkidle0" }); await sleep(2500);
 // 1. title -> world
-await clickText("button", "ENTER THE REALM"); await sleep(600); await shot("01-wipe"); await sleep(2400); await expect("title enters the world", "#/world");
+{ const btns = await page.$$("button"); for (const b of btns) { if ((await b.evaluate((e) => e.textContent)).includes("ENTER THE REALM")) { await b.click(); break; } } }
+await sleep(600); await shot("01-wipe"); await sleep(2400); await expect("title enters the world", "#/world");
+{ const m = await page.evaluate(() => ({ on: window.__vrMusic?.get().playing, t: window.__vrMusic?.time() }));
+  const ok = m.on && m.t > 0.5; results.push(`${ok ? "PASS" : "FAIL"} music starts when you enter (${(m.t || 0).toFixed(1)} s played)`); if (!ok) problems.push("[flow] music did not start"); }
 { await sleep(400); const shown = await page.evaluate(() => !!document.querySelector(".intro")); await shot("01b-intro");
   await clickText("button", "EXPLORE"); await sleep(600); const gone = await page.evaluate(() => !document.querySelector(".intro"));
   results.push(`${shown && gone ? "PASS" : "FAIL"} realm intro shows on first visit and closes`); if (!(shown && gone)) problems.push("[flow] intro card"); }
