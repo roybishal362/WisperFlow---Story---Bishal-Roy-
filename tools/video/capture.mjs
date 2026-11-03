@@ -69,7 +69,7 @@ const ACTIONS = {
 
 for (const [n, def] of Object.entries(PARTS)) {
   if (only && only !== n) continue;
-  const t = T[n] || {}; const dur = t.dur || def.dur; const cues = { ...def.cues, ...(t.cues || {}) };
+  const t = T[n] || {}; const dur = t.dur || def.dur; const cues = t.cues ? { ...t.cues } : { ...def.cues };   // with real voice timing, only the cues it found
   // set the starting screen off-camera
   if (n === "1") { await page.evaluate(() => { location.hash = "/"; }); await page.reload({ waitUntil: "networkidle0" }); await hideDialogue(); await sleep(4500); }
   else { await hash(def.start); await sleep(3600); }

@@ -13,7 +13,7 @@ FF = r"C:\Users\Bishal Roy\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_M
 FFMPEG = os.path.join(FF, "ffmpeg.exe")
 arg = lambda k, d=None: next((a.split("=", 1)[1] for a in sys.argv if a.startswith(f"--{k}=")), d)
 NAME = arg("out", "bishal-roy-the-vast-realm"); CAPTURE = "--no-capture" not in sys.argv
-EDL = json.load(open(os.path.join(WORK, "edl.json"), encoding="utf-8"))
+EDL = json.load(open(arg("edl") or os.path.join(WORK, "edl.json"), encoding="utf-8"))
 SRC = os.path.normpath(os.path.join(WORK, EDL["source"]))
 TR = arg("transcript") or os.path.splitext(SRC)[0] + ".json"
 def run(cmd, **kw):
@@ -28,6 +28,7 @@ clean = os.path.join(WORK, "voice-clean.wav")
 run([FFMPEG, "-y", "-i", SRC, "-ac", "1", "-ar", str(SR), "-af", "highpass=f=75,lowpass=f=14000,afftdn=nf=-25", clean])
 pcm = np.frombuffer(run_bin := subprocess.run([FFMPEG, "-v", "error", "-i", clean, "-f", "f32le", "-ac", "1", "-ar", str(SR), "-"], capture_output=True).stdout, dtype=np.float32)
 hop = int(SR * 0.01); env = np.sqrt(np.convolve(pcm ** 2, np.ones(hop * 2) / (hop * 2), mode="same"))[::hop]   # 10 ms RMS
+db = 20 * np.log10(env + 1e-6)
 def snap(t, side, win=0.3):
     """Move a cut to the quietest 10 ms nearby, but only AWAY from the speech it bounds:
     a start may move earlier (never into the first word), an end may move later (never into the last)."""
@@ -45,42 +46,81 @@ for w in WORDS:
         a, b = int(w["s"] * 100), min(len(db) - 1, int(w["e"] * 100))
         loud = np.nonzero(db[a:b + 1] > -45)[0]
         if len(loud): w["s"], w["e"] = round((a + loud[0]) / 100, 2), round(max((a + loud[-1]) / 100 + 0.05, (a + loud[0]) / 100 + 0.1), 2)
-md = open(os.path.join(VID, "VIDEO-SCRIPT.md"), encoding="utf-8").read()
+md = open(os.path.join(VID, EDL.get("script", "VIDEO-SCRIPT.md")), encoding="utf-8").read()
 SCRIPT = [re.sub(r"[*]", "", t) for t in re.findall(r"^> (.+)$", md, flags=re.M)][:10]
 FIX = [(r"\bwhisper\b", "Wispr"), (r"\bwisper\b", "Wispr"), (r"\bvistorflow\b", "Wispr Flow"), (r"\bvishal\b", "Bishal"), (r"\bbishel\b", "Bishal"),
        (r"\blightning ring\b", "Lantern Ring"), (r"\bdharaka\b", "Ghar ka"), (r"\bbolu\b", "Bolo"), (r"\bmatkaru\b", "mat karo"), (r"\bchinglish\b", "Hinglish"),
-       (r"\bstag\b", "strike"), (r"\bexplode\b", "explore"), (r"\bindian growth\b", "India growth"), (r"(\d) %", r"\1%"), (r"\bi\b", "I")]
+       (r"\bstag\b", "strike"), (r"\blatin ring\b", "Lantern Ring"), (r"\bwhisperflow\b", "Wispr Flow"), (r"\bmisfur flow\b", "Wispr Flow"), (r"\bgroot\b", "growth"), (r"\bmathkaro\b", "mat karo"), (r"\betch english\b", "Hinglish"), (r"\bgharka\b", "Ghar ka"), (r"\bdraughts\b", "dwarves"), (r"\bvasht\b", "Vast"), (r"\bexplode\b", "explore"), (r"\bindian growth\b", "India growth"), (r"(\d) %", r"\1%"), (r"\bi\b", "I")]
 def fix(t):
     for a, b in FIX: t = re.sub(a, b, t, flags=re.I)
     return t
 
 # ---------- build each section ----------
-LEAD, HEADGAP, TAIL, XF = 0.5, 0.55, 0.8, 0.45
-sections = []
+LEAD, HEADGAP, TAIL, XF = float(EDL.get("lead", 0.5)), 0.55, float(EDL.get("tail", 0.8)), 0.45
+END = float(EDL.get("endcard", 4.5))
+MAXP = float(EDL.get("maxpause", 0))   # shorten pauses inside a take to this many seconds (0 = leave them)
+def split_pauses(a, b):
+    """Split a take at its long pauses, leaving MAXP seconds of each pause, so the pace tightens without touching words."""
+    if MAXP <= 0: return [(a, b)]
+    i0 = int(a * 100); seg = db[i0:min(len(db), int(b * 100))]
+    if len(seg) < 10: return [(a, b)]
+    thr = np.percentile(seg, 90) - 22; out, start, k, n = [], a, 0, len(seg)
+    while k < n:
+        if seg[k] < thr:
+            j = k
+            while j < n and seg[j] < thr: j += 1
+            if (j - k) / 100 > MAXP and k > 0 and j < n:
+                out.append((start, (i0 + k) / 100 + MAXP / 2)); start = (i0 + j) / 100 - MAXP / 2
+            k = j
+        else: k += 1
+    return out + [(start, b)]
+def level_db(a, b):
+    """Speech loudness of a stretch (power mean of its louder frames), to even out quiet takes."""
+    seg = db[int(a * 100):int(b * 100)]
+    if len(seg) == 0: return None
+    sp = seg[seg > np.percentile(seg, 90) - 20]
+    return float(10 * np.log10(np.mean(10 ** (sp / 10)))) if len(sp) else None
+plan, klev = [], {}
 for sec in EDL["sections"]:
     n = sec["n"]; pieces = []
-    h0, h1 = snap(sec["head"][0], "start"), snap(sec["head"][1], "end")
-    pieces.append(("head", h0, h1))
-    for a, b in sec["keep"]: pieces.append(("body", snap(a, "start"), snap(b, "end")))
+    if sec.get("head"):
+        h0, h1 = snap(sec["head"][0], "start"), snap(sec["head"][1], "end")
+        pieces.append(("head", h0, h1, HEADGAP, -1)); klev[(n, -1)] = level_db(h0, h1)
+    for ki, (a, b) in enumerate(sec["keep"]):
+        a, b = snap(a, "start"), snap(b, "end"); klev[(n, ki)] = level_db(a, b)
+        subs = split_pauses(a, b)
+        for si, (x, y) in enumerate(subs): pieces.append(("body", x, y, 0.0 if si < len(subs) - 1 else 0.12, ki))
+    plan.append((sec, pieces))
+TARGET = float(np.percentile([v for v in klev.values() if v is not None], 70))
+gain = {k: (0.0 if v is None else float(np.clip(TARGET - v, -4, 9))) for k, v in klev.items()}
+print("pauses tightened by", round(sum(b - a for sec in EDL["sections"] for a, b in sec["keep"]) - sum(p[2] - p[1] for _, ps in plan for p in ps if p[0] == "body"), 1), "s"); print("gain per take (dB):", {f"{k[0]}.{k[1]}": round(g, 1) for k, g in gain.items()})
+sections = []
+for sec, pieces in plan:
+    n = sec["n"]
     # timeline inside the section (seconds from the section's audio start)
-    t, mapped, body_words = 0.0, [], []
-    for kind, a, b in pieces:
-        mapped.append((kind, a, b, t))
-        for w in WORDS:
-            # a word belongs to this take if most of it lies inside (the recogniser often stretches a first word back into the pause)
-            if kind == "body" and w["e"] > a + 0.08 and w["s"] < b - 0.05 and (min(w["e"], b) - max(w["s"], a)) >= 0.5 * min(0.25, w["e"] - w["s"]):
+    t, mapped, body_words, best = 0.0, [], [], {}
+    for pi, (kind, a, b, gap, ki) in enumerate(pieces):
+        if kind != "body": continue
+        for wi, w in enumerate(WORDS):
+            # a word belongs to a take if most of it lies inside (the recogniser often stretches a first word back into the pause)
+            ov = min(w["e"], b) - max(w["s"], a)
+            if w["e"] > a + 0.08 and w["s"] < b - 0.05 and ov >= 0.5 * min(0.25, w["e"] - w["s"]) and ov > best.get(wi, (0, -1))[0]:
+                best[wi] = (ov, pi)
+    for pi, (kind, a, b, gap, ki) in enumerate(pieces):
+        mapped.append((kind, a, b, t, gain[(n, ki)]))
+        for wi, w in enumerate(WORDS):
+            if best.get(wi, (0, -1))[1] == pi:
                 body_words.append({"w": w["w"], "s": max(w["s"], a) - a + t, "e": min(w["e"], b) - a + t})
-        t += (b - a) + (HEADGAP if kind == "head" else 0.12)
+        t += (b - a) + gap
     sec_len = t
-    # audio file for the section
     wav = os.path.join(WORK, f"sec{n}.wav")
     f = []; ins = []
-    for k, (kind, a, b, at) in enumerate(mapped):
-        f.append(f"[0:a]atrim={a:.3f}:{b:.3f},asetpts=PTS-STARTPTS,afade=t=in:d=0.03,afade=t=out:st={max(0, b - a - 0.04):.3f}:d=0.04,adelay={int(at * 1000)}|{int(at * 1000)}[p{k}]")
+    for k, (kind, a, b, at, g) in enumerate(mapped):
+        f.append(f"[0:a]atrim={a:.3f}:{b:.3f},asetpts=PTS-STARTPTS,volume={g:.2f}dB,afade=t=in:d=0.03,afade=t=out:st={max(0, b - a - 0.04):.3f}:d=0.04,adelay={int(at * 1000)}|{int(at * 1000)}[p{k}]")
         ins.append(f"[p{k}]")
     f.append(f"{''.join(ins)}amix=inputs={len(ins)}:normalize=0,apad,atrim=0:{sec_len:.3f}[o]")
     run([FFMPEG, "-y", "-i", clean, "-filter_complex", ";".join(f), "-map", "[o]", "-ac", "1", "-ar", str(SR), wav])
-    head_len = mapped[0][2] - mapped[0][1]
+    head_len = (mapped[0][2] - mapped[0][1]) if mapped[0][0] == "head" else 0.0
     sections.append({"n": n, "title": sec["title"], "wav": wav, "len": sec_len, "head_len": head_len, "words": body_words})
 
 # ---------- captions: what he said, with mis-hearings repaired from the script ----------
@@ -120,16 +160,23 @@ def capfix(n, ws):
                 ws = ws[:i] + rep + ws[i + len(o):]; break
         else: print(f"  !! caption fix not applied in part {n}: {old!r}")
     return ws
+if "capfix" in EDL: CAPFIX = {int(k): [tuple(x) for x in v] for k, v in EDL["capfix"].items()}
 
 WEAK = set("a an the of to my and with from is in into for at on by that his its who when what i im you as or so but every each one".split())
 def split_sentence(s):
     """Halve a long sentence until each piece fits on one line: cut at a comma near the middle,
     otherwise at the middle, but never right after a small word like "a" or "the"."""
-    if len(s) <= 2 or (len(" ".join(w["w"] for w in s)) <= 64 and len(s) <= 11): return [s]
+    if len(s) <= 2 or (len(" ".join(w["w"] for w in s)) <= 68 and len(s) <= 13): return [s]
     n = len(s); mid = round(n / 2); cut = None
-    for d in (0, 1, -1, 2, -2, 3, -3):
+    for marks, reach in (((";", ":"), 4), ((",",), 5)):
+        for d in sorted(range(-reach, reach + 1), key=abs):
+            i = mid + d
+            if 2 <= i <= n - 2 and s[i - 1]["w"].endswith(marks): cut = i; break
+        if cut is not None: break
+    for d in (0, 1, -1, 2, -2):
+        if cut is not None: break
         i = mid + d
-        if 2 <= i <= n - 2 and s[i - 1]["w"].endswith((",", ":", ";")): cut = i; break
+        if 3 <= i <= n - 3 and norm(s[i]["w"]) in ("and", "but", "because", "so", "then", "when", "where", "with"): cut = i
     joined = lambda i: s[i]["w"][:1].isdigit() or (s[i - 1]["w"][:1].isupper() and s[i]["w"][:1].isupper())   # "Class 10", "Echo Caves"
     for d in (0, -1, 1, -2, 2):
         if cut is not None: break
@@ -156,16 +203,20 @@ CUES = {1: {"enter": [("so", 1)]}, 2: {"turn1": [("journey", 1)], "turn2": [("is
         8: {"crystal1": [("speak", 1)], "speak": [("crystal", 1)]},
         9: {"plan1": [("dharaka", 1), ("ghar", 1), ("three", 1)], "plan2": [("campus", 1)], "plan3": [("bolu", 1), ("bolo", 1)]},
         10: {"depart": [("next", 1)]}}
+if "cues" in EDL: CUES = {int(k): {c: [tuple(x) for x in alts] for c, alts in v.items()} for k, v in EDL["cues"].items()}
 timing = {}
 for S in sections:
     n = S["n"]; off = LEAD; cues = {}
     for cue, alts in CUES.get(n, {}).items():
-        for word, nth in alts:
+        for spec in alts:   # (word, nth) or (word, nth, seconds after the word starts)
+            word, nth, extra = spec[0], spec[1], (spec[2] if len(spec) > 2 else 0)
             hits = [w for w in S["words"] if norm(w["w"]) == word]
-            if len(hits) >= nth: cues[cue] = round(off + hits[nth - 1]["s"], 2); break
+            if len(hits) >= nth: cues[cue] = round(off + hits[nth - 1]["s"] + extra, 2); break
     dur = round(LEAD + S["len"] + TAIL, 2)
     if n == 1 and "enter" in cues: dur = max(dur, cues["enter"] + 1.2)
-    if n == 3 and "sky" in cues: cues["rollout"] = round(max(cues.get("depot", 0) + 1.5, cues["sky"] - 3.0), 2); dur = max(dur, round(cues["sky"] + 3.4, 2))
+    if n == 3 and "sky" in cues:
+        if "rollout" not in cues: cues["rollout"] = round(max(cues.get("depot", 0) + 1.5, cues["sky"] - 3.0), 2)
+        dur = max(dur, round(cues["sky"] + 3.4, 2))
     if n == 4:
         if "tower" in cues and "mirror" in cues: cues["mirror"] = max(cues["mirror"], round(cues["tower"] + 2.6, 2))
         if "golden" in cues and "lakeflip" in cues: cues["golden"] = max(cues["golden"], round(cues["lakeflip"] + 2.0, 2))
@@ -180,7 +231,7 @@ for S in sections:
     timing[str(n)] = {"dur": dur, "cues": cues}
     S["dur"] = dur
 json.dump(timing, open(os.path.join(WORK, "timing.json"), "w"), indent=1)
-print("sections:", {s["n"]: round(s["dur"], 1) for s in sections}, "film ~", round(sum(s["dur"] for s in sections) - XF * (len(sections) - 1) + 4.5, 1), "s")
+print("sections:", {s["n"]: round(s["dur"], 1) for s in sections}, "film ~", round(sum(s["dur"] for s in sections) - XF * len(sections) + END, 1), "s")
 missing = {s["n"]: [c for c in CUES.get(s["n"], {}) if c not in timing[str(s["n"])]["cues"]] for s in sections}
 print("cues not found:", {k: v for k, v in missing.items() if v})
 
@@ -209,18 +260,18 @@ def add(*a):
 for k, S in enumerate(sections):
     add("-i", os.path.join(CLIPS, f"part{S['n']}.webm"))
     filt.append(f"[{k}:v]trim=0:{S['dur']},setpts=PTS-STARTPTS,fps=30,format=yuv420p,setsar=1[v{k}]")
-iend = add("-loop", "1", "-t", "4.5", "-i", end_png)
+iend = add("-loop", "1", "-t", f"{END}", "-i", end_png)
 filt.append(f"[{iend}:v]fps=30,format=yuv420p,setsar=1,fade=t=in:st=0:d=0.6[v{N}]")
 cur, t = "v0", sections[0]["dur"]; offs.append(0.0)
 for k in range(1, N + 1):
     off = t - XF; offs.append(off)
     filt.append(f"[{cur}][v{k}]xfade=transition=fade:duration={XF}:offset={off:.3f}[x{k}]"); cur = f"x{k}"
-    t = off + (sections[k]["dur"] if k < N else 4.5)
+    t = off + (sections[k]["dur"] if k < N else END)
 total = t
 # chapter cards over the start of each section
 for k, S in enumerate(sections):
-    idx = add("-loop", "1", "-t", f"{S['head_len'] + LEAD + 1.6:.2f}", "-i", os.path.join(titles_dir, f"title{S['n']}.png"))
-    st = offs[k] + 0.15; d = S["head_len"] + LEAD + 1.3
+    idx = add("-loop", "1", "-t", f"{max(S['head_len'] + LEAD + 1.3, 2.3) + 0.4:.2f}", "-i", os.path.join(titles_dir, f"title{S['n']}.png"))
+    st = offs[k] + 0.15; d = max(S["head_len"] + LEAD + 1.3, 2.3)
     filt.append(f"[{idx}:v]format=rgba,fade=t=in:st=0:d=0.35:alpha=1,fade=t=out:st={d:.2f}:d=0.4:alpha=1,setpts=PTS+{st:.3f}/TB[t{k}]")
     filt.append(f"[{cur}][t{k}]overlay=0:0:eof_action=pass[c{k}]"); cur = f"c{k}"
 # voice
@@ -229,7 +280,7 @@ for k, S in enumerate(sections):
     idx = add("-i", S["wav"])
     d = int((offs[k] + LEAD) * 1000)
     filt.append(f"[{idx}:a]adelay={d}|{d}[a{k}]"); amix.append(f"[a{k}]")
-filt.append(f"{''.join(amix)}amix=inputs={N}:normalize=0,loudnorm=I=-16:TP=-1.5:LRA=11,apad,atrim=0:{total:.3f}[aout]")
+filt.append(f"{''.join(amix)}amix=inputs={N}:normalize=0,acompressor=threshold=0.1:ratio=2.5:attack=15:release=250,loudnorm=I=-16:TP=-1.5:LRA=11,apad,atrim=0:{total:.3f}[aout]")
 # captions
 def ts(x): return f"{int(x // 3600)}:{int(x % 3600 // 60):02d}:{x % 60:05.2f}"
 ass = ["[Script Info]", "ScriptType: v4.00+", "PlayResX: 1920", "PlayResY: 1080", "", "[V4+ Styles]",
