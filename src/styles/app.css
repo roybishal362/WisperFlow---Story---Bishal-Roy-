@@ -114,3 +114,17 @@ a{color:inherit;text-decoration:none}
 
 /* motion switch off: stop the decorative loops (scene transitions stay short and gentle) */
 .calm .living img.drift,.calm .w-isl img,.calm .w-balloon,.calm .cr-isl,.calm .dlg .next,.calm .ll-sig .lamp{animation:none !important}
+
+/* ---------- realm intro card ---------- */
+.intro-ov{z-index:140}
+.intro{position:relative;width:620px;padding:26px 32px 24px;text-align:left}
+.intro .k{text-align:center}
+.intro h2{font-family:Cinzel,serif;font-size:32px;color:#fff6dc;text-align:center;margin:4px 0 10px;letter-spacing:.06em}
+.intro h4{font-family:Cinzel,serif;font-size:12px;letter-spacing:.18em;color:var(--gold);margin-top:12px}
+.intro p{font-size:16.5px;line-height:1.6;color:#eef1ff;margin-top:4px}
+.intro ul{list-style:none;margin-top:6px;display:flex;flex-direction:column;gap:6px}
+.intro li{font-size:15px;line-height:1.45;color:#eef1ff;padding-left:20px;position:relative}
+.intro li::before{content:'◆';position:absolute;left:0;color:var(--gold);font-size:11px;top:3px}
+.intro .b{display:flex;justify-content:center;margin-top:18px}
+.stage.portrait .intro{width:740px}
+.hud-tr .ico{font-family:Cinzel,serif;font-weight:900}

@@ -29,3 +29,5 @@ tests/flows*/
 tests/probe*
 tests/depot-*.png
 tests/repro-*.png
+tests/look*
+tests/burst.mjs

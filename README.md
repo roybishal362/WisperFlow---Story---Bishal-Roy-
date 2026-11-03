@@ -33,6 +33,8 @@
 It is also an honest portfolio: the failures sit right next to the wins, because both are true at the same time.
 
 > **No time?** Every screen has a **60-second version** button: the whole story on one card, with email, résumé and LinkedIn.
+>
+> **New here?** The first time you enter a realm, a welcome card explains what the place is and how to explore it; the **?** button brings it back.
 
 ---
 
@@ -86,11 +88,11 @@ Steam (school in Chandrapur) → diesel (college in Pune) → electric (the hack
 </tr></table>
 
 ### The Lake of Mirrors: eight wins, and what each one cost
-Eight towers stand in a still lake, each with gold-mended cracks. Tap one and the camera flies in: **the tower** (the win), **the reflection** (what it cost), **the gold** (how I mended it). **Turn the mirror** and the whole lake flips, so the failures stand up and the wins become the reflection.
+Eight towers stand in a still lake, each with gold-mended cracks, and each one stands for something (the Lighthouse keeps its light on through the storm: my health, and coming back). Tap a tower and the camera flies in, but at first you only see **the win**. **Turn the mirror** and the tower flips: **the reflection** shows what that win cost me, and **the gold** shows how I mended it. Turn the whole lake and the failures stand up while the wins become the reflection.
 
 <table><tr>
 <td><img src="docs/screens/09-lake.jpg" alt="The Lake of Mirrors with eight labelled towers"></td>
-<td><img src="docs/screens/10-tower.jpg" alt="Tower II, the Silver Spire: never first"></td>
+<td><img src="docs/screens/10-tower.jpg" alt="Tower II, the Silver Spire, after turning the mirror: the cost and the gold"></td>
 <td><img src="docs/screens/11-mirror.jpg" alt="The mirror turned: the lake flipped upside down"></td>
 </tr></table>
 
@@ -163,6 +165,7 @@ Three flight plans for Wispr Flow India (**Ghar ka Flow**, **Campus Flow**, **Bo
 - **Transitions:** cloud wipes that preload the next realm while they cover the screen, the balloon flight, the depot engine change, the lake fly-in, a light bloom when you enter a shop, and a forge flash with a logo burst.
 - **Content as data.** Every word on the site lives in one file, [`src/content.js`](src/content.js).
 - **Progress is remembered** (`localStorage`): realms visited, your bag of item cards, the stage of every workshop.
+- **Every realm explains itself.** A welcome card on first entry (what it is, how to explore), a ? button to reopen it, and a plain-words description for every project and workshop.
 - **Accessible and calm when asked.** Keyboard navigation (arrows, Enter, Esc, M for the map), focus rings, alt text, and a ✨ switch in the HUD that turns the animations off.
 - **Light.** 133 paintings as WebP (12 MB in total), loaded realm by realm; the JavaScript bundle is about 120 KB gzipped.
 

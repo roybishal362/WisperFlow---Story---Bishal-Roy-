@@ -71,7 +71,7 @@ function Workshop({ i }) {
         {w.skills.map((s, j) => <motion.span key={s} className="cr-rune" style={{ left: 470 + ((j * 173) % 440), top: 220 + ((j * 97) % 190) }}
           initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1, y: [0, -8, 0] }} transition={{ delay: 0.3 + j * 0.08, y: { duration: 4 + j * 0.3, repeat: Infinity } }}>{s}</motion.span>)}
       </div>
-      <div className="panel cr-make">WHAT'S BEING MADE<b>{w.item}</b>
+      <div className="panel cr-make">WHAT'S BEING MADE<b>{w.item}</b><p className="cr-about">{w.about}</p>
         {w.logos.length > 0 && <div className="cr-logos">{w.logos.map((l) => <img key={l} src={`/art/logos/${l}.svg`} alt={l} title={l} />)}</div>}
       </div>
       <div className="panel cr-strip">

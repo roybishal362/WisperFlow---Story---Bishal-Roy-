@@ -31,3 +31,5 @@
 .portrait .cr-nav{bottom:640px}
 .portrait .cr-make{left:30px;right:30px;max-width:none;top:140px}
 .portrait .cr-runes{display:none}
+
+.cr-about{font-family:Nunito,sans-serif;font-size:13px;letter-spacing:0;line-height:1.45;color:#e8ecff;margin-top:6px;text-transform:none}

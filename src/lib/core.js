@@ -42,7 +42,7 @@ export const go = (path) => {
 
 // ---------- saved progress (localStorage) ----------
 const KEY = "vast-realm-v1";
-let state = { visited: [], bag: [], stages: {}, crystals: [] };
+let state = { visited: [], bag: [], stages: {}, crystals: [], seen: [] };
 try { state = { ...state, ...JSON.parse(localStorage.getItem(KEY) || "{}") }; } catch { /* first visit */ }
 const subs = new Set();
 function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch { /* private mode */ } subs.forEach((f) => f()); }
@@ -52,7 +52,8 @@ export const store = {
   visit(realm) { if (!state.visited.includes(realm)) { state = { ...state, visited: [...state.visited, realm] }; save(); } },
   addToBag(id) { if (!state.bag.includes(id)) { state = { ...state, bag: [...state.bag, id] }; save(); return true; } return false; },
   setStage(ws, n) { state = { ...state, stages: { ...state.stages, [ws]: n } }; save(); },
-  reset() { state = { visited: [], bag: [], stages: {}, crystals: [] }; save(); },
+  seeIntro(id) { const seen = state.seen || []; if (!seen.includes(id)) { state = { ...state, seen: [...seen, id] }; save(); } },
+  reset() { state = { visited: [], bag: [], stages: {}, crystals: [], seen: [] }; save(); },
 };
 export const useStore = () => useSyncExternalStore(store.subscribe, store.get);
 

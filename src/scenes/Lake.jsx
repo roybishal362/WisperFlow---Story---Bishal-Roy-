@@ -82,15 +82,27 @@ export default function Lake({ route }) {
         <motion.div key={i} className={"panel lk-card" + (flip ? " flipped" : "")} initial={{ opacity: 0, x: -24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={{ duration: 0.4, delay: 0.2 }}>
           <div className="k">TOWER {t.n} OF VIII</div>
           <h2>{t.name}</h2>
+          <div className="lk-about">{t.about}</div>
           <div className="sec s1"><b>THE TOWER · WHAT YOU SEE</b><p>{t.win}</p></div>
-          <div className="sec s2"><b>THE REFLECTION · WHAT IT HID</b><p>{t.refl}</p></div>
-          <div className="sec s3"><b>THE GOLD · HOW I MENDED IT</b><p>{t.gold}</p></div>
+          <AnimatePresence initial={false} mode="wait">
+            {flip ? (
+              <motion.div key="other" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.45, delay: 0.35 }}>
+                <div className="sec s2"><b>THE REFLECTION · WHAT IT COST ME</b><p>{t.refl}</p></div>
+                <div className="sec s3"><b>THE GOLD · HOW I MENDED IT</b><p>{t.gold}</p></div>
+              </motion.div>
+            ) : (
+              <motion.button type="button" key="hint" className="lk-hint" onClick={() => setFlip(true)} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <b>⇅ THE WATER HIDES THE OTHER HALF</b>
+                <span>Turn the mirror to see what this win cost me, and how I mended it.</span>
+              </motion.button>
+            )}
+          </AnimatePresence>
         </motion.div>
       </AnimatePresence>
       <div className="panel lk-bar">
         <div className="tok">{TOWERS.map((x, j) => <button type="button" key={x.n} className={j === i ? "on" : ""} onClick={() => go(`/lake/${j + 1}`)} aria-label={`Tower ${x.n}`}>{x.n}</button>)}</div>
         <Btn dark className="sm" onClick={() => go("/lake")}>◀ THE LAKE</Btn>
-        <Btn dark className="sm" onClick={() => setFlip((f) => !f)}>⇅ {flip ? "TURN IT BACK" : "TURN THE MIRROR"}</Btn>
+        <Btn dark={flip} className={"sm" + (flip ? "" : " lk-pulse")} onClick={() => setFlip((f) => !f)}>⇅ {flip ? "TURN IT BACK" : "TURN THE MIRROR"}</Btn>
         <Btn className="sm" onClick={() => go(i < 7 ? `/lake/${i + 2}` : "/lake")}>{i < 7 ? "NEXT TOWER ▶" : "BACK TO THE LAKE"}</Btn>
       </div>
     </>

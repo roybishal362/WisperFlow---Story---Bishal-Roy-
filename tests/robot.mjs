@@ -22,6 +22,7 @@ const STEPS = [
   ["16-crafters", "#/crafters"], ["17-crafters-alch", "#/crafters/alchemist"],
   ["18-echo", "#/echo"],
   ["19-sky", "#/skyport"], ["20-sky-plan", "#/skyport/plan/2"], ["21-sky-council", "#/skyport/council"], ["22-sky-end", "#/skyport/end"],
+  ["23-intro-card", "#/lake", async (p) => { await p.evaluate(() => [...document.querySelectorAll(".hud button")].find((b) => b.textContent.trim() === "?")?.click()); await sleep(800); }],
 ];
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -41,6 +42,8 @@ page.on("requestfailed", (r) => problems.push(`[requestfailed] ${r.url()} ${r.fa
 page.on("response", (r) => { if (r.status() >= 400) problems.push(`[http ${r.status()}] ${r.url()}`); });
 
 await page.goto(base + "/#/", { waitUntil: "networkidle0" });
+await page.evaluate(() => localStorage.setItem("vast-realm-v1", JSON.stringify({ visited: [], bag: [], stages: {}, crystals: [], seen: ["world", "city", "line", "lake", "ring", "crafters", "echo", "skyport"] })));
+await page.reload({ waitUntil: "networkidle0" });
 for (const [name, hash, act] of STEPS) {
   if (only && !name.startsWith(only)) continue;
   await page.evaluate((h) => { window.location.hash = h.slice(1); }, hash);

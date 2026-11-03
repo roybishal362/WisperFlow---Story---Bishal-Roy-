@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Stage from "./components/Stage";
 import { Btn } from "./components/Ui";
 import { useRoute, go, preload, art, store, useStore, wait, motion as motionSwitch, useMotion } from "./lib/core";
-import { REALMS, SIXTY, PERSON } from "./content";
+import { REALMS, SIXTY, PERSON, INTRO } from "./content";
 import { PRELOAD } from "./lib/preloads";
 import Title from "./scenes/Title";
 import World from "./scenes/World";
@@ -45,7 +45,7 @@ function CloudWipe({ wipe }) {
   );
 }
 
-function Hud({ onSixty, realm }) {
+function Hud({ onSixty, realm, onIntro }) {
   const { visited } = useStore();
   const n = REALM_IDS.filter((id) => visited.includes(id)).length;
   return (
@@ -57,10 +57,32 @@ function Hud({ onSixty, realm }) {
       <div className="hud-tr">
         <button type="button" className="pillh" onClick={onSixty}>◷ 60-second version</button>
         <div className="pillh" title="Realms explored">◈ {n} / {REALM_IDS.length}</div>
+        {INTRO[realm] && <button type="button" className="ico" onClick={onIntro} aria-label="What is this place?" title="What is this place?">?</button>}
         <MotionBtn />
         {realm !== "world" && <button type="button" className="ico" onClick={() => go("/world")} aria-label="World map" title="World map">🗺</button>}
       </div>
     </div>
+  );
+}
+
+function Intro({ id, onClose }) {
+  const it = INTRO[id];
+  useEffect(() => {
+    const f = (e) => { if (e.key === "Escape" || e.key === "Enter") { e.preventDefault(); e.stopPropagation(); onClose(); } };
+    window.addEventListener("keydown", f, true); return () => window.removeEventListener("keydown", f, true);
+  }, [onClose]);
+  return (
+    <motion.div className="overlay intro-ov" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose}>
+      <motion.div className="panel intro" initial={{ y: 24, opacity: 0, scale: 0.96 }} animate={{ y: 0, opacity: 1, scale: 1 }} exit={{ y: 12, opacity: 0 }} transition={{ duration: 0.4 }} onClick={(e) => e.stopPropagation()}>
+        <div className="k">◆ REALM DISCOVERED ◆</div>
+        <h2>{it.title}</h2>
+        <h4>WHAT IS THIS PLACE?</h4>
+        <p>{it.what}</p>
+        <h4>HOW TO EXPLORE</h4>
+        <ul>{it.how.map((h) => <li key={h}>{h}</li>)}</ul>
+        <div className="b"><Btn onClick={onClose} autoFocus>✦ EXPLORE</Btn></div>
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -97,6 +119,8 @@ export default function App() {
   const [shown, setShown] = useState(route);
   const [wipe, setWipe] = useState(null);
   const [sixty, setSixty] = useState(false);
+  const [intro, setIntro] = useState(null);
+  const { seen = [] } = useStore();
   const seq = useRef(0);
 
   useEffect(() => {
@@ -126,6 +150,15 @@ export default function App() {
     window.addEventListener("keydown", f); return () => window.removeEventListener("keydown", f);
   }, [shown.realm]);
 
+  // show the realm's intro card once, after the clouds have opened
+  useEffect(() => {
+    if (wipe || !INTRO[shown.realm] || seen.includes(shown.realm)) return;
+    const t = setTimeout(() => setIntro(shown.realm), 250);
+    return () => clearTimeout(t);
+  }, [wipe, shown.realm]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (intro && intro !== shown.realm) setIntro(null); }, [shown.realm, intro]);
+  const closeIntro = () => { store.seeIntro(intro); setIntro(null); };
+
   const Scene = SCENES[shown.realm] || Title;
   return (
     <Stage>
@@ -134,8 +167,9 @@ export default function App() {
           <Scene route={shown} busy={!!wipe} onSixty={() => setSixty(true)} />
         </motion.div>
       </AnimatePresence>
-      {shown.realm !== "title" && <Hud onSixty={() => setSixty(true)} realm={shown.realm} />}
+      {shown.realm !== "title" && <Hud onSixty={() => setSixty(true)} realm={shown.realm} onIntro={() => setIntro(shown.realm)} />}
       <CloudWipe wipe={wipe} />
+      <AnimatePresence>{intro && !wipe && <Intro key={intro} id={intro} onClose={closeIntro} />}</AnimatePresence>
       <AnimatePresence>{sixty && <Sixty onClose={() => setSixty(false)} />}</AnimatePresence>
     </Stage>
   );

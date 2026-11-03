@@ -29,9 +29,13 @@ async function clickText(sel, text) {
 async function expect(name, want) { const h = await hash(); const pass = h === want; results.push(`${pass ? "PASS" : "FAIL"} ${name}: ${h}${pass ? "" : " (wanted " + want + ")"}`); if (!pass) problems.push(`[flow] ${name} ended at ${h}, wanted ${want}`); }
 
 await page.goto(base + "/#/", { waitUntil: "networkidle0" });
-await page.evaluate(() => localStorage.clear()); await page.reload({ waitUntil: "networkidle0" }); await sleep(2500);
+await page.evaluate(() => localStorage.setItem("vast-realm-v1", JSON.stringify({ visited: [], bag: [], stages: {}, crystals: [], seen: ["city", "line", "lake", "ring", "crafters", "echo", "skyport"] })));
+await page.reload({ waitUntil: "networkidle0" }); await sleep(2500);
 // 1. title -> world
 await clickText("button", "ENTER THE REALM"); await sleep(600); await shot("01-wipe"); await sleep(2400); await expect("title enters the world", "#/world");
+{ await sleep(400); const shown = await page.evaluate(() => !!document.querySelector(".intro")); await shot("01b-intro");
+  await clickText("button", "EXPLORE"); await sleep(600); const gone = await page.evaluate(() => !document.querySelector(".intro"));
+  results.push(`${shown && gone ? "PASS" : "FAIL"} realm intro shows on first visit and closes`); if (!(shown && gone)) problems.push("[flow] intro card"); }
 // 2. click the Lake island -> balloon flight -> lake
 if (mobile) { // a real finger: first tap shows the preview card, its button travels
   const box = await page.evaluate(() => { const r = [...document.querySelectorAll(".w-hit")].find((b) => b.getAttribute("aria-label").includes("Lake")).getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; });
@@ -44,12 +48,17 @@ await sleep(1000); await shot("02-balloon-midflight");
   results.push(`${ok ? "PASS" : "FAIL"} balloon is flying mid-trip: ${moved}`); if (!ok) problems.push("[anim] balloon did not fly"); } await sleep(3400); await expect("island travel to the lake", "#/lake");
 // 3. click tower III -> fly-in
 await page.evaluate(() => document.querySelectorAll(".lk-tw")[2]?.click()); await sleep(450); await shot("03-tower-zoom"); await sleep(1600); await expect("tower click", "#/lake/3");
-await clickText("button", "TURN THE MIRROR"); await sleep(1100); await shot("04-tower-mirrored");
+{ const before = await page.evaluate(() => !!document.querySelector(".lk-card .s2"));
+  await clickText("button", "TURN THE MIRROR"); await sleep(1300); await shot("04-tower-mirrored");
+  const after = await page.evaluate(() => !!document.querySelector(".lk-card .s2") && !!document.querySelector(".lk-card .s3"));
+  results.push(`${!before && after ? "PASS" : "FAIL"} mirror hides the cost until turned (before ${before}, after ${after})`); if (before || !after) problems.push("[flow] mirror reveal"); }
 // 4. long line: depot roll-out
 await page.evaluate(() => { location.hash = "/line/depot2"; }); await sleep(3200);
-await clickText("button", "ROLL OUT"); await sleep(500); await shot("05-depot-sparks");
-{ const sp = await page.evaluate(() => !!document.querySelector(".ll-sparks")); results.push(`${sp ? "PASS" : "FAIL"} depot sparks appear`); if (!sp) problems.push("[anim] no depot sparks"); } await sleep(700); await shot("06-depot-flash"); await sleep(700); await shot("07-depot-banner");
-{ const bn = await page.evaluate(() => !!document.querySelector(".ll-banner")); results.push(`${bn ? "PASS" : "FAIL"} engine-upgrade banner appears`); if (!bn) problems.push("[anim] no upgrade banner"); }
+await clickText("button", "ROLL OUT");
+{ const seen = (sel) => page.waitForFunction((q) => !!document.querySelector(q), { timeout: 2500 }, sel).then(() => true).catch(() => false);
+  const sp = await seen(".ll-sparks"); results.push(`${sp ? "PASS" : "FAIL"} depot sparks appear`); if (!sp) problems.push("[anim] no depot sparks");
+  const bn = await seen(".ll-banner"); results.push(`${bn ? "PASS" : "FAIL"} engine-upgrade banner appears`); if (!bn) problems.push("[anim] no upgrade banner");
+  await shot("07-depot-banner"); }
 await sleep(2200); await expect("depot rolls out to the next leg", "#/line/leg3");
 await clickText("button", "NEXT STOP"); await sleep(400); await shot("08-train-departing"); await sleep(1500); await expect("next stop", "#/line/depot3");
 // 5. lantern ring: enter the front shop, add to bag
@@ -62,8 +71,9 @@ const bag = await page.evaluate(() => JSON.parse(localStorage.getItem("vast-real
 results.push(`${bag.includes("apothecary") ? "PASS" : "FAIL"} bag saved: ${JSON.stringify(bag)}`); if (!bag.includes("apothecary")) problems.push("[flow] bag not saved");
 // 6. crafters: strike twice
 await page.evaluate(() => { location.hash = "/crafters/forge"; }); await sleep(3200);
-await clickText("button", "STRIKE THE ANVIL"); await sleep(250); await shot("11-forge-strike");
-{ const bu = await page.evaluate(() => document.querySelectorAll(".cr-burst img").length); results.push(`${bu ? "PASS" : "FAIL"} forge logo burst (${bu} logos)`); if (!bu) problems.push("[anim] no logo burst"); } await sleep(1200);
+await clickText("button", "STRIKE THE ANVIL");
+{ const bu = await page.waitForFunction(() => document.querySelectorAll(".cr-burst img").length, { timeout: 1500 }).then((h) => h.jsonValue()).catch(() => 0);
+  results.push(`${bu ? "PASS" : "FAIL"} forge logo burst (${bu} logos)`); if (!bu) problems.push("[anim] no logo burst"); await shot("11-forge-strike"); } await sleep(1500);
 await clickText("button", "STRIKE THE ANVIL"); await sleep(1300);
 const st = await page.evaluate(() => (JSON.parse(localStorage.getItem("vast-realm-v1") || "{}").stages || {}).forge);
 results.push(`${st === 2 ? "PASS" : "FAIL"} forge stage after two strikes: ${st}`); if (st !== 2) problems.push("[flow] forge stage wrong");
