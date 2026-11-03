@@ -2,16 +2,21 @@
 // The API keys stay on the server, in environment variables, and never reach the browser:
 //   GEMINI_API_KEY (tried first) and GROQ_API_KEY (the backup). Either one is enough.
 //   On Vercel: Project → Settings → Environment Variables. On this laptop: site/.env.local.
-// Optional: GEMINI_MODEL, GROQ_MODEL to change the models.
+// Optional: GEMINI_MODEL, GROQ_MODEL to put a model of your choice first.
 import * as C from "../src/content.js";
 
-const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
-const GROQ_MODEL = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
-const MAX_IN = 600, MAX_TURNS = 12, TIMEOUT = 15000;
+// Each provider has a chain of models: if one is busy (503), rate-limited (429) or retired (404),
+// the next one answers, and the busy one is skipped for a while.
+const uniq = (a) => [...new Set(a.filter(Boolean))];
+const GEMINI_MODELS = uniq([process.env.GEMINI_MODEL, "gemini-flash-lite-latest", "gemini-3.1-flash-lite", "gemini-flash-latest", "gemini-3.8-flash"]);
+const GROQ_MODELS = uniq([process.env.GROQ_MODEL, "openai/gpt-oss-120b", "qwen/qwen3.8-27b", "openai/gpt-oss-20b"]);
+const MAX_IN = 600, MAX_TURNS = 12, TIMEOUT = 9000, BUDGET = 24000;
+const resting = new Map();   // model -> time it may be tried again
 
 // ---------- the facts Roy may use: every word on the site, minus art and layout fields ----------
 const SKIP = new Set(["art", "expr", "img", "itemImg", "sheet", "logos", "color", "island", "preview", "angle", "pos", "file", "act",
-  "stars", "id", "kind", "leg", "from", "to", "route", "roy", "hindi", "sourceUrl", "link", "twin", "resume", "x", "y", "w", "h"]);
+  "stars", "id", "kind", "leg", "from", "to", "route", "roy", "hindi", "sourceUrl", "link", "twin", "resume", "x", "y", "w", "h",
+  "k", "ticket", "chips", "flavour", "type", "item", "stages", "crystals", "keywords", "letter"]);
 const keep = ([k]) => !SKIP.has(k);
 function one(v) {   // any value as one compact line
   if (v == null) return "";
@@ -41,6 +46,7 @@ const SYSTEM = `You are Roy, the chibi guide of "The Vast Realm": a portfolio wo
 
 How you answer:
 - Use ONLY the facts below. If something isn't in them, say you don't know that one and suggest emailing ${C.PERSON.email}. Never invent numbers, dates, names, employers or results.
+- Keep every number, time span and name exactly as the facts say it. Don't round, generalise or embellish (no "always", no "within days" unless the facts say so).
 - Be warm, plain and short: 2 to 4 sentences, under 80 words, unless the visitor asks for more detail. No headings, no bullet lists, no markdown.
 - Reply in the visitor's language. Hinglish is welcome.
 - When one realm shows the answer, end with its link token on its own, exactly as written: ${C.REALMS.map((r) => `[[${r.id}]]`).join(" ")}. At most one token per reply.
@@ -55,34 +61,37 @@ FACTS:
 ${FACTS}`;
 
 // ---------- the two providers ----------
-async function gemini(msgs) {
-  const cfg = { temperature: 0.6, maxOutputTokens: 400 };
-  if (/2\.5/.test(GEMINI_MODEL)) cfg.thinkingConfig = { thinkingBudget: 0 };   // answer straight away
-  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`, {
-    method: "POST", signal: AbortSignal.timeout(TIMEOUT),
-    headers: { "Content-Type": "application/json", "x-goog-api-key": process.env.GEMINI_API_KEY },
-    body: JSON.stringify({
-      systemInstruction: { parts: [{ text: SYSTEM }] },
-      contents: msgs.map((m) => ({ role: m.role === "user" ? "user" : "model", parts: [{ text: m.text }] })),
-      generationConfig: cfg,
-    }),
-  });
+class Busy extends Error {}   // this model can't answer now; try the next one
+async function call(url, headers, body) {
+  const r = await fetch(url, { method: "POST", signal: AbortSignal.timeout(TIMEOUT), headers: { "Content-Type": "application/json", ...headers }, body: JSON.stringify(body) });
   const j = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(`${r.status} ${j.error?.message || ""}`.slice(0, 200));
-  return (j.candidates?.[0]?.content?.parts || []).map((p) => p.text || "").join("");
+  if (!r.ok) throw new (r.status === 429 || r.status >= 500 || r.status === 404 ? Busy : Error)(`${r.status} ${j.error?.message || ""}`.slice(0, 160));
+  return j;
 }
-async function groq(msgs) {
-  const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST", signal: AbortSignal.timeout(TIMEOUT),
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${process.env.GROQ_API_KEY}` },
-    body: JSON.stringify({
-      model: GROQ_MODEL, temperature: 0.6, max_tokens: 400,
-      messages: [{ role: "system", content: SYSTEM }, ...msgs.map((m) => ({ role: m.role === "user" ? "user" : "assistant", content: m.text }))],
-    }),
+async function gemini(model, msgs) {
+  const cfg = { temperature: 0.3, maxOutputTokens: 1500 };
+  cfg.thinkingConfig = /2\.5/.test(model) ? { thinkingBudget: 0 } : { thinkingLevel: "low" };   // answer quickly
+  const j = await call(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, { "x-goog-api-key": process.env.GEMINI_API_KEY }, {
+    systemInstruction: { parts: [{ text: SYSTEM }] },
+    contents: msgs.map((m) => ({ role: m.role === "user" ? "user" : "model", parts: [{ text: m.text }] })),
+    generationConfig: cfg,
   });
-  const j = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(`${r.status} ${j.error?.message || ""}`.slice(0, 200));
+  return (j.candidates?.[0]?.content?.parts || []).filter((p) => !p.thought).map((p) => p.text || "").join("");
+}
+async function groq(model, msgs) {
+  const think = /gpt-oss/.test(model) ? { reasoning_effort: "low", include_reasoning: false } : /qwen/.test(model) ? { reasoning_format: "hidden" } : {};
+  const j = await call("https://api.groq.com/openai/v1/chat/completions", { Authorization: `Bearer ${process.env.GROQ_API_KEY}` }, {
+    model, temperature: 0.3, max_tokens: 1024, ...think,
+    messages: [{ role: "system", content: SYSTEM }, ...msgs.map((m) => ({ role: m.role === "user" ? "user" : "assistant", content: m.text }))],
+  });
   return j.choices?.[0]?.message?.content || "";
+}
+function chain() {
+  const out = [];
+  if (process.env.GEMINI_API_KEY) out.push(...GEMINI_MODELS.map((m) => ["gemini", m, gemini]));
+  if (process.env.GROQ_API_KEY) out.push(...GROQ_MODELS.map((m) => ["groq", m, groq]));
+  const now = Date.now(), awake = out.filter(([, m]) => (resting.get(m) || 0) <= now);
+  return awake.length ? awake : out;   // if every model is resting, try them all anyway
 }
 
 // ---------- guard rails for a public endpoint ----------
@@ -123,14 +132,16 @@ export default async function handler(req, res) {
     .map((m) => ({ role: m.role, text: m.text.slice(0, MAX_IN) }));
   while (msgs.length && msgs[0].role !== "user") msgs.shift();   // the providers want the visitor to speak first
   if (!msgs.length || msgs[msgs.length - 1].role !== "user") return send(res, 400, { error: "Ask me something first." });
-  const tries = [];
-  if (process.env.GEMINI_API_KEY) tries.push(["gemini", gemini]);
-  if (process.env.GROQ_API_KEY) tries.push(["groq", groq]);
-  for (const [name, fn] of tries) {
+  const t0 = Date.now();
+  for (const [name, model, fn] of chain()) {
+    if (Date.now() - t0 > BUDGET) break;
     try {
-      const text = (await fn(msgs)).trim();
-      if (text) return send(res, 200, { text, via: name });
-    } catch (e) { console.error(`roy: ${name} failed: ${e.message}`); }
+      const text = (await fn(model, msgs)).trim();
+      if (text) return send(res, 200, { text, via: `${name}/${model}` });
+    } catch (e) {
+      if (e instanceof Busy || e.name === "TimeoutError") resting.set(model, Date.now() + (/^404/.test(e.message) ? 3600e3 : 90e3));
+      console.error(`roy: ${name}/${model} failed: ${e.message}`);
+    }
   }
   return send(res, 502, { error: "My lantern flickered and I couldn't answer just now. Try again in a moment." });
 }

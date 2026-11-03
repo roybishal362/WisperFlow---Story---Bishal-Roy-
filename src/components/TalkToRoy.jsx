@@ -27,11 +27,14 @@ export default function TalkToRoy({ onClose }) {
   const list = useRef(null), input = useRef(null), rec = useRef(null), alive = useRef(true);
 
   useEffect(() => { list.current?.scrollTo({ top: 1e6, behavior: "smooth" }); }, [msgs, busy]);
+  useEffect(() => {   // open and close once: the chat stays "alive" until it really closes
+    alive.current = true; input.current?.focus();
+    return () => { alive.current = false; try { rec.current?.abort(); } catch { /* not listening */ } music.duck(false); };
+  }, []);
   useEffect(() => {
-    input.current?.focus();
     const esc = (e) => { if (e.key === "Escape") { e.stopPropagation(); onClose(); } };
     window.addEventListener("keydown", esc, true);
-    return () => { alive.current = false; window.removeEventListener("keydown", esc, true); try { rec.current?.abort(); } catch { /* not listening */ } music.duck(false); };
+    return () => window.removeEventListener("keydown", esc, true);
   }, [onClose]);
 
   async function ask(q) {

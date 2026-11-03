@@ -25,8 +25,8 @@ const box = await p.evaluate(() => { const r = document.querySelector(".tr").get
 check("chat fits on screen", box[0] >= 0 && box[1] >= 0 && box[2] <= box[4] && box[3] <= box[5], box.join(","));
 await p.type(".tr-in input", "What is the Lake of Mirrors?");
 await p.keyboard.press("Enter");
-await p.waitForFunction(() => document.querySelectorAll(".tr .tr-m.roy").length >= 2, { timeout: 30000 }).catch(() => {});
-const answer = await p.evaluate(() => [...document.querySelectorAll(".tr .tr-m.roy")].pop()?.innerText || "");
+await p.waitForFunction(() => document.querySelectorAll(".tr .tr-m.roy:not(.tr-typing)").length >= 2, { timeout: 30000 }).catch(() => {});
+const answer = await p.evaluate(() => [...document.querySelectorAll(".tr .tr-m.roy:not(.tr-typing)")].pop()?.innerText || "");
 check("Roy answers", answer.length > 20, answer.replace(/\s+/g, " ").slice(0, 160));
 check("typing did not move the world", await p.evaluate(() => location.hash) === "#/world");
 if (shots) await p.screenshot({ path: `${shots}/roy-${mobile ? "phone" : "desk"}.png` });
