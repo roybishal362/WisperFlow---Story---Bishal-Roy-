@@ -6,9 +6,10 @@
 
 **Bishal Roy** · Applied AI Engineer · entry for the **Wispr Flow** India growth-team challenge
 
-[**▶ Enter the Realm (live)**](https://wisper-flow-story-bishal-roy.vercel.app) &nbsp;·&nbsp; [The 60-second version](https://wisper-flow-story-bishal-roy.vercel.app) &nbsp;·&nbsp; [LinkedIn](https://www.linkedin.com/in/bishal-roy-5410b5257/) &nbsp;·&nbsp; [Email](mailto:roybishal9989@gmail.com)
+[**▶ Enter the Realm (live)**](https://wisper-flow-story-bishal-roy.vercel.app) &nbsp;·&nbsp; [**🎬 Watch the video (2:54)**](https://youtu.be/q5VHQ0icKZo) &nbsp;·&nbsp; [The 60-second version](https://wisper-flow-story-bishal-roy.vercel.app) &nbsp;·&nbsp; [LinkedIn](https://www.linkedin.com/in/bishal-roy-5410b5257/) &nbsp;·&nbsp; [Email](mailto:roybishal9989@gmail.com)
 
 ![Built with Wispr Flow](https://img.shields.io/badge/built%20by%20voice-Wispr%20Flow-2f7d84?style=flat-square)
+[![Watch on YouTube](https://img.shields.io/badge/watch-the%20video%20·%202:54-e62117?style=flat-square&logo=youtube&logoColor=white)](https://youtu.be/q5VHQ0icKZo)
 ![17.6K words dictated](https://img.shields.io/badge/dictated-17.6K%20words-e9c77b?style=flat-square)
 ![155 wpm](https://img.shields.io/badge/speaking%20speed-155%20wpm-e9c77b?style=flat-square)
 ![React 19](https://img.shields.io/badge/React-19-61dafb?style=flat-square&logo=react&logoColor=white)
@@ -19,6 +20,26 @@
 <a href="https://wisper-flow-story-bishal-roy.vercel.app"><img src="docs/hero.jpg" alt="The Vast Realm title screen: a floating anime city in the clouds" width="100%"></a>
 
 </div>
+
+---
+
+## Watch the video
+
+Three minutes, in my own voice: what I built, why I built it as a world, and what building by voice changed.
+
+<div align="center">
+<a href="https://youtu.be/q5VHQ0icKZo"><img src="docs/video.jpg" alt="Watch the video on YouTube: The Vast Realm, built by voice" width="80%"></a>
+
+**[▶ Watch on YouTube](https://youtu.be/q5VHQ0icKZo)** &nbsp;·&nbsp; **[Explore the live site](https://wisper-flow-story-bishal-roy.vercel.app)**
+</div>
+
+| Chapter | | Chapter | |
+|---|---|---|---|
+| [The Idea · Why a World](https://youtu.be/q5VHQ0icKZo?t=0) | 0:00 | [The Skills](https://youtu.be/q5VHQ0icKZo?t=74) | 1:14 |
+| [The Journey](https://youtu.be/q5VHQ0icKZo?t=24) | 0:24 | [The Vast City](https://youtu.be/q5VHQ0icKZo?t=90) | 1:30 |
+| [The Lake of Mirrors](https://youtu.be/q5VHQ0icKZo?t=39) | 0:39 | [Why Voice](https://youtu.be/q5VHQ0icKZo?t=107) | 1:47 |
+| [The Projects](https://youtu.be/q5VHQ0icKZo?t=56) | 0:56 | [Where I Go Next](https://youtu.be/q5VHQ0icKZo?t=126) | 2:06 |
+| | | [The Ask](https://youtu.be/q5VHQ0icKZo?t=146) | 2:26 |
 
 ---
 
@@ -148,6 +169,7 @@ Three flight plans for Wispr Flow India (**Ghar ka Flow**, **Campus Flow**, **Bo
 | | |
 |---|---|
 | **Words dictated through Wispr Flow** | **17.6K** |
+| **The video** | Narrated in my own voice: [youtu.be/q5VHQ0icKZo](https://youtu.be/q5VHQ0icKZo) |
 | **Speaking speed** | **155 wpm** |
 | **How** | Every decision, every round of feedback and every story was spoken through **Wispr Flow** to **Claude Code**, which wrote the code |
 | **Art** | Generated with Google Gemini and FLUX (Cloudflare Workers AI). Every image was reviewed for accuracy, consistency and story flow, and redone when it fell short (one shop set was redrawn because eight shops came out as the same dome) |
@@ -167,6 +189,7 @@ Three flight plans for Wispr Flow India (**Ghar ka Flow**, **Campus Flow**, **Bo
 - **Progress is remembered** (`localStorage`): realms visited, your bag of item cards, the stage of every workshop.
 - **Every realm explains itself.** A welcome card on first entry (what it is, how to explore), a ? button to reopen it, and a plain-words description for every project and workshop.
 - **Accessible and calm when asked.** Keyboard navigation (arrows, Enter, Esc, M for the map), focus rings, alt text, and a ✨ switch in the HUD that turns the animations off.
+- **The video is edited by code** ([`tools/video/`](tools/video/)). A script records every scene from the site in full HD and times each click to the moment I say the word (speech-to-text word timings), so the tower flips on *"Turn the mirror"* and the anvil rings on *"Every strike"*. ffmpeg then cuts my best takes, evens out the volume, and adds the chapter cards and captions.
 - **Light.** 133 paintings as WebP (12 MB in total), loaded realm by realm; the JavaScript bundle is about 120 KB gzipped.
 
 ```
@@ -178,6 +201,7 @@ src/
 └─ scenes/               Title · World · VastCity · LongLine · Lake · LanternRing · Crafters · Echo · Skyport
 public/art/<realm>/      the paintings (WebP)
 tests/                   the test robot
+tools/video/             the video pipeline: scene capture, voice edit, chapter cards, thumbnail
 ```
 
 ### Quality
@@ -224,6 +248,6 @@ Deploying: import the repo into Vercel (Vite is detected automatically; the buil
 
 ## Contact
 
-**Bishal Roy** · [roybishal9989@gmail.com](mailto:roybishal9989@gmail.com) · [LinkedIn](https://www.linkedin.com/in/bishal-roy-5410b5257/) · [GitHub](https://github.com/roybishal362)
+**Bishal Roy** · [roybishal9989@gmail.com](mailto:roybishal9989@gmail.com) · [LinkedIn](https://www.linkedin.com/in/bishal-roy-5410b5257/) · [GitHub](https://github.com/roybishal362) · [The video](https://youtu.be/q5VHQ0icKZo) · [The live site](https://wisper-flow-story-bishal-roy.vercel.app)
 
 <div align="center"><sub>Next station: Wispr Flow.</sub></div>
