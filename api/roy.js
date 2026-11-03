@@ -16,7 +16,7 @@ const resting = new Map();   // model -> time it may be tried again
 // ---------- the facts Roy may use: every word on the site, minus art and layout fields ----------
 const SKIP = new Set(["art", "expr", "img", "itemImg", "sheet", "logos", "color", "island", "preview", "angle", "pos", "file", "act",
   "stars", "id", "kind", "leg", "from", "to", "route", "roy", "hindi", "sourceUrl", "link", "twin", "resume", "x", "y", "w", "h",
-  "k", "ticket", "chips", "flavour", "type", "item", "stages", "crystals", "keywords", "letter"]);
+  "k", "ticket", "chips", "flavour", "type", "item", "stages", "crystals", "keywords", "letter", "badge", "tone", "shop"]);
 const keep = ([k]) => !SKIP.has(k);
 function one(v) {   // any value as one compact line
   if (v == null) return "";
@@ -37,6 +37,7 @@ const FACTS = [
   section("The Long Line: my journey as a train (legs are milestones, depots are setbacks)", C.LINE),
   section("The Lake of Mirrors: each tower is a win (win), what it cost me (refl) and what it taught me (gold)", C.TOWERS),
   section("The Lantern Ring: my 12 projects as shops", C.SHOPS),
+  section("The Trophy Hall: my hackathon results, and my Kaggle competitions (rank / teams)", C.TROPHIES),
   section("The Crafters' Quarter: my skills, as five workshops", C.WORKSHOPS),
   section("The Echo Caves: building by voice", C.ECHO),
   section("The Wispr Skyport: my plan for Wispr Flow India, and my ask", C.SKYPORT),

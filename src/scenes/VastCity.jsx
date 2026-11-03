@@ -5,10 +5,43 @@ import Living from "../components/Living";
 import Particles from "../components/Particles";
 import { Dialogue, Region, Btn, enter } from "../components/Ui";
 import { art, go, useStore, preload } from "../lib/core";
-import { RINGS, REALMS, PERSON } from "../content";
+import { RINGS, REALMS, PERSON, TROPHIES } from "../content";
 import "./VastCity.css";
 
 const OTHER = REALMS.filter((r) => r.id !== "city").map((r) => r.id);
+const fmt = (n) => n.toLocaleString("en-IN");
+
+// Ring V: the hackathon shelf and the Kaggle arena, with the real results
+function TrophyWall() {
+  return (
+    <div className="tw">
+      <section>
+        <h3>HACKATHONS &amp; FINALS</h3>
+        {TROPHIES.hackathons.map((h) => (
+          <div key={h.event} className="tw-h">
+            <i className={"tw-badge " + h.tone}>{h.badge}</i>
+            <div><b>{h.result}</b><span className="ev">{h.event}</span><span className="nt">{h.note}</span></div>
+            {h.shop ? <button type="button" className="tw-go" onClick={() => go(`/ring/${h.shop}`)} title={`See ${h.build} in the Lantern Ring`}>{h.build} ›</button> : <em className="tw-go off">{h.build}</em>}
+          </div>
+        ))}
+      </section>
+      <section>
+        <h3>THE KAGGLE ARENA</h3>
+        <p className="tw-lead">{TROPHIES.kaggleLead}</p>
+        {TROPHIES.kaggle.map((k) => {
+          const ahead = Math.round(((k.teams - k.rank) / k.teams) * 100);
+          return (
+            <div key={k.name} className={"tw-k" + (k.note && k.note !== "team" ? " star" : "")}>
+              <div className="row"><b>{k.name}</b><span>{fmt(k.rank)} / {fmt(k.teams)}</span></div>
+              <div className="bar" title={`Ahead of ${ahead}% of teams`}><i style={{ width: `${ahead}%` }} /></div>
+              {k.note && <div className="nt">{k.note}</div>}
+            </div>
+          );
+        })}
+      </section>
+    </div>
+  );
+}
 
 export default function VastCity({ route }) {
   const { visited } = useStore();
@@ -65,10 +98,11 @@ export default function VastCity({ route }) {
       <div className="shade-top" style={{ top: -200, height: crown ? 520 : 480, background: crown ? "linear-gradient(180deg,rgba(8,10,24,.85),rgba(8,10,24,.35) 70%,transparent)" : undefined }} />
       <Region title="THE VAST CITY" sub={`ring ${r.n} of VII · ${r.name}`} className="vc-region" />
       <AnimatePresence mode="wait">
-        <motion.div key={r.n} className="panel vc-card" initial={{ opacity: 0, x: -24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={{ duration: 0.4, delay: 0.15 }}>
+        <motion.div key={r.n} className={"panel vc-card" + (i === 4 ? " vc-trophy" : "")} initial={{ opacity: 0, x: -24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={{ duration: 0.4, delay: 0.15 }}>
           <div className="k">RING {r.n} OF VII</div>
           <h2>{r.name}</h2>
           <p>{r.text}</p>
+          {i === 4 && <TrophyWall />}
           {crown && (crownOpen ? (
             <div className="vc-letter">
               <div className="seal">✉</div>

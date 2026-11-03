@@ -92,7 +92,7 @@ flowchart LR
 ## The seven realms
 
 ### The Vast City: who I am, ring by ring
-Seven rings climb the city: **Roots** (Chandrapur) → **Values** → **Learning** → **Work** → **the Trophy Hall** → **Community** → **the Crown**. The Crown holds a sealed letter that opens only for visitors who explore every realm.
+Seven rings climb the city: **Roots** (Chandrapur) → **Values** → **Learning** → **Work** → **the Trophy Hall** → **Community** → **the Crown**. The Crown holds a sealed letter that opens only for visitors who explore every realm. The **Trophy Hall** lists every hackathon final (Smart India Hackathon 2024 runner-up, iQOO 2026 Grand Finalist, Rajasthan Royals 4th nationally, FAR AWAY 2026 finalist, Novartis NEST 2.0 semifinalist, Amazon ML 2025 top 8%) and all 8 Kaggle competitions with their real ranks.
 
 <table><tr>
 <td><img src="docs/screens/04-city.jpg" alt="The Vast City overview with the ring list"></td>

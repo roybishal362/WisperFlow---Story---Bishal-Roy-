@@ -54,7 +54,7 @@ export const RINGS = [
     text: "Applied AI Intern at Interview Kickstart: Feedback Loop scores 3,000+ classes and turns a 4-hour class into feedback in ~9 minutes for ~$1. Before that: AI Engineer Intern at CloudCredits, where my risk models cut false positives by 34%.",
     roy: "Where the work happens. Real users, real numbers." },
   { n: "V", name: "The Trophy Hall", sub: "every final I reached", art: "bg-ring5-trophies", expr: "wink",
-    text: "SIH 2024 runner-up · Rajasthan Royals 4th · NEST semifinalist · Amazon ML top 8% (team) · iQOO Grand Finalist. And one empty pedestal, still waiting.",
+    text: "Every final I reached, and every Kaggle competition I entered, with the real results. And one empty pedestal, still waiting.",
     roy: "Look at all those silver trophies. And that one empty pedestal. I'm coming for it." },
   { n: "VI", name: "Community", sub: "teaching what I learned", art: "bg-ring6-community", expr: "happy",
     text: "As GDG on Campus AI/ML co-lead, I ran 8 workshops on GenAI, LLMs and RAG for 400+ developers, and organised a hackathon on campus.",
@@ -289,5 +289,30 @@ export const ROYCHAT = {
   chips: ["What did you build at Interview Kickstart?", "What was your hardest setback?", "Why is your portfolio a world?", "What would you do at Wispr Flow?", "What are your best hackathon results?"],
   note: "Roy answers only from the facts in this world, using AI. It can still slip, so for anything important, email me.",
   down: "My lantern flickered and I couldn't answer just now. Try again in a moment, or email me at roybishal9989@gmail.com.",
+};
+
+// The Trophy Hall (Vast City, ring V). Hackathon wording follows 00-SOURCE-OF-TRUTH.md;
+// Kaggle ranks are read from Bishal's Kaggle profile (Competitions, best result), 4 Nov 2026.
+export const TROPHIES = {
+  hackathons: [
+    { badge: "2", tone: "silver", event: "Smart India Hackathon 2024", result: "Runner-up at the Grand Finale", note: "Indian Sign Language problem statement · one of 5 teams selected nationally · team", build: "Mudra", shop: "theatre-hands" },
+    { badge: "GF", tone: "gold", event: "iQOO Hackathon 2026", result: "Grand Finalist", note: "Grand Finale in Bengaluru · about 60,000 teams applied · solo, built in 41 hours", build: "StripSense", shop: "apothecary" },
+    { badge: "4", tone: "bronze", event: "Rajasthan Royals SupeRR Selector Hackathon 2025", result: "4th place nationally", note: "top 8 at the finale · 7,500+ participants · solo", build: "Cricket Scout", shop: "scouts" },
+    { badge: "14", tone: "steel", event: "FAR AWAY 2026", result: "Finalist, rank 14", note: "solo", build: "Kakehashi", shop: "bridge-office" },
+    { badge: "SF", tone: "steel", event: "Novartis NEST 2.0 (2025–26)", result: "National Semifinalist", note: "Round 2 of 4", build: "C-TRUST", shop: "assay" },
+    { badge: "8%", tone: "steel", event: "Amazon ML Challenge 2025", result: "Top 8% on the final leaderboard", note: "team", build: "Smart Pricing", shop: "appraiser" },
+    { badge: "…", tone: "steel", event: "PromptWars Virtual 2026", result: "Entered", note: "the result isn't out yet", build: "Mehfil", shop: null },
+  ],
+  kaggleLead: "8 code competitions, ranks straight from my Kaggle profile. No medals yet: this is where I train, and one became a research paper.",
+  kaggle: [
+    { name: "Child Mind Institute: Problematic Internet Use", rank: 1182, teams: 3559, note: "became my first-author paper, under review at JAIR" },
+    { name: "Make Data Count: Finding Data References", rank: 487, teams: 1282 },
+    { name: "UM: Game-Playing Strength of MCTS Variants", rank: 755, teams: 1608 },
+    { name: "RSNA Intracranial Aneurysm Detection", rank: 707, teams: 1147 },
+    { name: "BirdCLEF+ 2026", rank: 2567, teams: 4094 },
+    { name: "AI Agent Security: Multi-Step Tool Attacks", rank: 2634, teams: 4186 },
+    { name: "RSNA Knee Abnormality Detection", rank: 4012, teams: 6299, note: "team" },
+    { name: "Santa 2024: The Perplexity Permutation Puzzle", rank: 1259, teams: 1514 },
+  ],
 };
 
