@@ -1,0 +1,113 @@
+/* ---------- frame ---------- */
+.viewport{position:fixed;inset:0;overflow:hidden;background:#0b0f1e;touch-action:none;user-select:none;-webkit-user-select:none}
+.stage{position:absolute;left:50%;top:50%;transform-origin:50% 50%}
+.scene{position:absolute;inset:0}
+.bgbox,.coverbox{position:absolute;overflow:hidden}
+.coverbox{overflow:visible}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+a{color:inherit;text-decoration:none}
+.btn{cursor:pointer;transition:transform .15s ease,filter .15s ease;white-space:nowrap}
+.btn:hover{transform:translateY(-2px);filter:brightness(1.08)}
+.btn:active{transform:translateY(1px)}
+.btn:focus-visible,button:focus-visible,a:focus-visible{outline:2px solid #fff3c8;outline-offset:3px}
+.btn.sm{padding:8px 16px;font-size:13px}
+
+/* ---------- living painting ---------- */
+.living{z-index:0}
+.living-in{position:absolute;inset:-28px;will-change:translate}
+.living img{width:100%;height:100%;object-fit:cover;display:block}
+.living img.drift{animation:drift 32s ease-in-out infinite alternate}
+@keyframes drift{from{transform:scale(1.02) translate(0,0)}to{transform:scale(1.09) translate(-1.2%,-.8%)}}
+.particles{z-index:3;pointer-events:none}
+.particles canvas{width:100%;height:100%;display:block}
+.vig{z-index:2;pointer-events:none}
+.shade-top{position:absolute;left:0;right:0;top:0;height:260px;background:linear-gradient(180deg,rgba(8,10,24,.55),transparent);z-index:4;pointer-events:none}
+.shade-bottom{position:absolute;left:0;right:0;bottom:0;height:300px;background:linear-gradient(0deg,rgba(8,10,24,.55),transparent);z-index:4;pointer-events:none}
+
+/* ---------- dialogue ---------- */
+.dlg{z-index:110;cursor:pointer;transform:none}
+.dlg .txt .ghost{visibility:hidden}
+.dlg .dlg-act{position:absolute;right:30px;bottom:-22px;display:flex;gap:10px}
+.dlg .next{animation:blink 1.2s infinite}
+@keyframes blink{50%{opacity:.25}}
+.region{z-index:30;pointer-events:none}
+
+/* ---------- HUD ---------- */
+.hud{position:absolute;inset:0;pointer-events:none;z-index:130}
+.hud>*{pointer-events:auto}
+.hud .hud-tl{text-align:left}
+.hud-tr .pillh{cursor:default}
+.hud-tr button.pillh,.hud-tr .ico{cursor:pointer;transition:filter .15s}
+.hud-tr button.pillh:hover,.hud-tr .ico:hover{filter:brightness(1.25)}
+
+/* ---------- cloud wipe ---------- */
+.wipe{position:fixed;inset:0;z-index:200;pointer-events:all;display:grid;place-items:center;overflow:hidden;background:#f6efe6}
+.wipe img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.wipe-title{position:relative;text-align:center;text-shadow:0 2px 14px rgba(255,255,255,.9)}
+.wipe-title h1{font-family:Cinzel,serif;font-weight:700;font-size:clamp(26px,4.2vw,54px);letter-spacing:.16em;color:#3f4c7a}
+.wipe-title .orn{width:min(420px,70vw);height:14px;margin:6px auto;background:linear-gradient(90deg,transparent,#c9a44f 30%,#c9a44f 70%,transparent) center/100% 1px no-repeat}
+.wipe-title .orn::before{content:"◆";display:block;color:#c9a44f;font-size:12px;line-height:14px}
+.wipe-title p{font-size:clamp(11px,1.1vw,15px);letter-spacing:.3em;text-transform:uppercase;color:#5d6890}
+
+/* ---------- overlays ---------- */
+.overlay{position:absolute;inset:-400px;z-index:150;background:rgba(6,8,20,.62);backdrop-filter:blur(4px);display:grid;place-items:center}
+.sixty{position:relative;width:780px;padding:28px 32px}
+.sixty .x{position:absolute;right:14px;top:10px;font-size:18px;color:var(--gold2);padding:6px}
+.sixty .top{display:flex;gap:18px;align-items:center}
+.sixty .top i{width:96px;height:96px;border-radius:50%;background:#f4ecdc center 18%/118% no-repeat;border:3px solid var(--gold);flex:none}
+.sixty h2{font-family:Cinzel,serif;font-size:26px;color:#fff6dc}
+.sixty .l{font-size:15px;color:#dfe5fa;margin-top:4px;line-height:1.5}
+.sixty ul{list-style:none;margin-top:16px;display:flex;flex-direction:column;gap:9px}
+.sixty li{font-size:14.5px;line-height:1.45;color:#eef1ff;padding-left:20px;position:relative}
+.sixty li::before{content:'◆';position:absolute;left:0;color:var(--gold);font-size:11px;top:3px}
+.sixty .b{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
+.toast{position:absolute;left:50%;top:92px;z-index:90;padding:12px 18px;display:flex;gap:12px;align-items:center;min-width:330px}
+.toast i{width:40px;height:40px;border-radius:8px;background:linear-gradient(135deg,#ffe9a8,#d29a2c);display:grid;place-items:center;color:#3a2405;font-style:normal;font-weight:900;flex:none}
+.toast b{display:block;font-family:Cinzel,serif;font-size:12.5px;letter-spacing:.12em;color:var(--gold2)}
+.toast span{font-size:13px;color:#e8ecff}
+
+/* ---------- shared bits ---------- */
+.flash{position:absolute;inset:-200px;z-index:80;pointer-events:none;background:radial-gradient(circle at 50% 50%,#fff 0%,rgba(255,246,200,.95) 18%,rgba(255,200,90,.5) 40%,transparent 70%)}
+.shake{animation:shake .45s ease}
+@keyframes shake{20%{transform:translate(-6px,3px)}40%{transform:translate(5px,-4px)}60%{transform:translate(-4px,2px)}80%{transform:translate(3px,-2px)}}
+.chip{padding:7px 11px;border-radius:6px;background:rgba(233,199,123,.12);border:1px solid rgba(233,199,123,.6);font-weight:800;font-size:14.5px;color:#ffe9b0}
+.chip small{display:block;font-weight:600;font-size:10.5px;color:#d7dcef}
+.k{font-family:Cinzel,serif;font-size:12px;letter-spacing:.2em;color:var(--gold)}
+.navbtns{position:absolute;display:flex;gap:10px;z-index:45}
+
+/* ---------- phones held upright: one consistent layout pass ---------- */
+.stage.portrait .dlg{width:780px;height:150px;bottom:30px}
+.stage.portrait .dlg .por{width:120px;height:120px}
+.stage.portrait .dlg .box{height:132px;padding:22px 26px 14px 66px}
+.stage.portrait .dlg .txt{font-size:19px}
+.stage.portrait .region{top:112px}
+.stage.portrait .region h1{font-size:34px;letter-spacing:.1em}
+.stage.portrait .region p{font-size:13px;letter-spacing:.2em}
+.stage.portrait .hud-tl .who span{display:none}
+.stage.portrait .sixty{width:760px}
+.stage.portrait .vc-list{top:300px}
+.stage.portrait .vc-card{top:290px}
+.stage.portrait .ll-bar{top:84px}
+.stage.portrait .ll-stop{top:250px}
+.stage.portrait .ll-tkw{top:640px}
+.stage.portrait .ll-dregion{top:200px !important}
+.stage.portrait .ll-scw{top:330px}
+.stage.portrait .lk-card{top:270px}
+.stage.portrait .lk-region{top:112px}
+.stage.portrait .lk-nav{flex-wrap:wrap;justify-content:center;width:760px}
+.stage.portrait .lr-bag{top:240px}
+.stage.portrait .lr-region{left:40px;right:40px;top:112px}
+.stage.portrait .lr-sp{top:280px}
+.stage.portrait .lr-card{top:650px}
+.stage.portrait .cr-make{top:300px}
+.stage.portrait .cr-region h1{font-size:28px}
+.stage.portrait .ec-crystal{top:300px}
+.stage.portrait .ec-list{top:610px}
+.stage.portrait .sp-plans{left:130px;width:560px;top:200px}
+.stage.portrait .sp-days{top:940px;bottom:auto}
+.stage.portrait .sp-nav{bottom:250px}
+.stage.portrait .sp-plan{top:200px;width:640px}
+.stage.portrait .sp-treaty{width:500px;top:220px}
+.stage.portrait .sp-acts{bottom:250px;flex-direction:row;flex-wrap:wrap;justify-content:center;width:auto}
+.stage.portrait .sp-acts .btn{padding:10px 16px;font-size:13px}
+.stage.portrait .t-tip{bottom:380px}
